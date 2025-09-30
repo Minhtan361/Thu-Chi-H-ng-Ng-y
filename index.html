@@ -360,6 +360,44 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Thêm vào cuối thẻ <style> */
+/* Tối ưu hóa cho màn hình nhỏ (điện thoại) */
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column; /* Xếp chồng các cột */
+    }
+
+    .col {
+        padding: 0;
+        min-width: 100%; /* Cột chiếm toàn bộ chiều rộng */
+    }
+
+    .expense-item {
+        flex-direction: column; /* Xếp chồng các thành phần chi phí */
+        align-items: stretch;
+        margin-bottom: 15px; /* Tăng khoảng cách để dễ tương tác */
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    }
+
+    .expense-item input[type="text"] {
+        width: 100% !important; /* Đảm bảo ô nhập liệu chiếm toàn bộ chiều rộng */
+        margin-right: 0;
+        margin-bottom: 8px; /* Khoảng cách giữa Nội dung và Giá trị */
+    }
+
+    .expense-item button {
+        width: 100%; /* Nút Xóa cũng chiếm toàn bộ chiều rộng */
+        margin-left: 0;
+    }
+
+    /* Đảm bảo input giá trị chi phí không bị giới hạn chiều rộng cũ */
+    #expenseContainer input[style*="width: 150px"] {
+        width: 100% !important;
+    }
+}
     </style>
 </head>
 <body>
