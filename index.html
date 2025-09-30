@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Thu Chi Hàng Ngày</title>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d35400;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        
+        .col {
+            flex: 1;
+            padding: 0 10px;
+            min-width: 200px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .admin-login {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #e8f4fd;
+        }
+        
+        .currency {
+            text-align: right;
+        }
+        
+        .date-selector {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .date-selector input {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .expense-item {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .expense-item input {
+            margin-right: 10px;
+        }
+        
+        .expense-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .add-expense-btn {
+            margin-top: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #3498db;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .summary-table {
+            margin-top: 20px;
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .user-management {
+            margin-top: 20px;
+        }
+        
+        .user-list {
+            margin-top: 15px;
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-actions button {
+            margin-left: 5px;
+        }
+        
+        .export-image-container {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        #exportedImage {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .action-buttons button {
+            flex: 1;
+        }
+        
+        .sync-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .sync-online {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .sync-offline {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Trạng thái đồng bộ -->
+    <div id="syncStatus" class="sync-status hidden">
+        <span id="syncText"></span>
+        <span id="syncLoader" class="loading hidden"></span>
+    </div>
+
+    <!-- Màn hình đăng nhập -->
+    <div id="loginScreen" class="container">
+        <div class="login-container">
+            <h2 class="login-title">ĐĂNG NHẬP THU NGÂN</h2>
+            <div class="form-group">
+                <label for="cashierName">Tên thu ngân:</label>
+                <select id="cashierName">
+                    <option value="">-- Chọn thu ngân --</option>
+                    <!-- Các tên thu ngân sẽ được thêm động -->
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="login()" style="width: 100%;">Đăng nhập</button>
+            
+            <div class="admin-login">
+                <button class="btn btn-warning" onclick="showAdminLogin()" style="width: 100%;">Đăng nhập Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Màn hình chính -->
+    <div id="mainScreen" class="container hidden">
+        <header>
+            <h1>SỔ THU CHI HÀNG NGÀY</h1>
+            <div class="user-info">
+                <div id="userDisplay">Xin chào: <span id="currentUser"></span></div>
+                <div>
+                    <button class="btn btn-warning" onclick="showAdminPanel()" id="adminPanelBtn">Quản trị</button>
+                    <button class="btn btn-danger" onclick="logout()">Đăng xuất</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab điều hướng -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('inputTab')">Nhập liệu</div>
+            <div class="tab" onclick="switchTab('viewTab')" id="viewTabBtn">Xem dữ liệu</div>
+            <div class="tab" onclick="switchTab('adminTab')" id="adminTabBtn">Quản trị</div>
+        </div>
+
+        <!-- Tab nhập liệu -->
+        <div id="inputTab" class="tab-content active">
+            <div class="date-selector">
+                <label for="selectedDate">Ngày:</label>
+                <input type="date" id="selectedDate">
+                <button class="btn btn-primary" onclick="loadDataForDate()">Tải dữ liệu</button>
+            </div>
+
+            <div class="row">
+                <!-- Phần Thu -->
+                <div class="col">
+                    <div class="card">
+                        <div class="card-title">PHẦN THU</div>
+                        <div class="form-group">
+                            <label for="revenue">Doanh thu:</label>
+                            <input type="text" id="revenue" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="cash">Tiền mặt:</label>
+                            <input type="text" id="cash" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="transfer">Chuyển khoản:</label>
+                            <input type="text" id="transfer" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="totalIncome">Thành tiền:</label>
+                            <input type="text" id="totalIncome" readonly>
+                        </div>
+                        
+                        <div class="card-title" style="margin-top: 20px;">APPS</div>
+                        <div class="form-group">
+                            <label for="shoppeFood">Shoppe Food:</label>
+                            <input type="text" id="shoppeFood" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="grabFood">Grab Food:</label>
+                            <input type="text" id="grabFood" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="beeFood">Bee Food:</label>
+                            <input type="text" id="beeFood" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="totalApps">Tổng Apps:</label>
+                            <input type="text" id="totalApps" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="staffDiscount">Giảm giá nhân viên:</label>
+                            <input type="text" id="staffDiscount" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phần Chi -->
+                <div class="col">
+                    <div class="card">
+                        <div class="card-title">PHẦN CHI</div>
+                        <div id="expenseContainer">
+                            <!-- Các khoản chi sẽ được thêm động ở đây -->
+                        </div>
+                        <button class="btn btn-primary add-expense-btn" onclick="addExpenseField()">Thêm khoản chi</button>
+                        
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label for="totalExpense">Tổng chi:</label>
+                            <input type="text" id="totalExpense" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tổng kết -->
+                <div class="col">
+                    <div class="card">
+                        <div class="card-title">TỔNG KẾT</div>
+                        <div class="form-group">
+                            <label for="openingCash">Đầu ca (mặc định):</label>
+                            <input type="text" id="openingCash" value="500.000" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="totalAfterOpening">Tổng cộng sau đầu ca:</label>
+                            <input type="text" id="totalAfterOpening" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="otherIncome">Thu khác:</label>
+                            <input type="text" id="otherIncome" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="totalReceived">Tổng nhận:</label>
+                            <input type="text" id="totalReceived" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="totalIncomeFinal">Tổng thu nhập:</label>
+                            <input type="text" id="totalIncomeFinal" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="actualTotal">Tổng thực tế:</label>
+                            <input type="text" id="actualTotal" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="saveAndExport()">Lưu và Xuất Ảnh</button>
+                <button class="btn btn-warning" onclick="exportToExcel()" id="exportBtn">Xuất Excel</button>
+            </div>
+
+            <!-- Khu vực hiển thị ảnh xuất -->
+            <div id="exportImageContainer" class="export-image-container hidden">
+                <h3>BÁO CÁO THU CHI NGÀY</h3>
+                <div id="reportContent">
+                    <!-- Nội dung báo cáo sẽ được thêm động -->
+                </div>
+                <img id="exportedImage" src="" alt="Báo cáo thu chi">
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="downloadImage()">Tải ảnh xuống</button>
+                    <button class="btn btn-danger" onclick="hideExportImage()">Đóng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab xem dữ liệu -->
+        <div id="viewTab" class="tab-content">
+            <div class="card">
+                <div class="card-title">DỮ LIỆU THEO NGÀY</div>
+                <div class="form-group">
+                    <label for="viewDate">Chọn ngày:</label>
+                    <input type="date" id="viewDate">
+                    <button class="btn btn-primary" onclick="loadViewData()">Xem dữ liệu</button>
+                </div>
+                <div id="viewData">
+                    <!-- Dữ liệu sẽ được hiển thị ở đây -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab quản trị -->
+        <div id="adminTab" class="tab-content">
+            <div class="card">
+                <div class="card-title">QUẢN LÝ THU NGÂN</div>
+                <div class="user-management">
+                    <div class="form-group">
+                        <label for="newUserName">Tên thu ngân mới:</label>
+                        <input type="text" id="newUserName" placeholder="Nhập tên thu ngân">
+                    </div>
+                    <button class="btn btn-success" onclick="addUser()">Thêm thu ngân</button>
+                    
+                    <div class="user-list" id="userList">
+                        <!-- Danh sách thu ngân sẽ được hiển thị ở đây -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">LỊCH SỬ NHẬP LIỆU</div>
+                <div id="inputHistory">
+                    <!-- Lịch sử nhập liệu sẽ được hiển thị ở đây -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBI6gADn7OPIJbK3x4tu69Zh5eRLoXO_zs",
+          authDomain: "minhtan-d6ecd.firebaseapp.com",
+          projectId: "minhtan-d6ecd",
+          storageBucket: "minhtan-d6ecd.firebasestorage.app",
+          messagingSenderId: "490270665555",
+          appId: "1:490270665555:web:7df829b497cf0985448fa6",
+          measurementId: "G-6VXZT1ZER6"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Biến toàn cục
+        let currentUser = null;
+        let isAdmin = false;
+        const adminPassword = "thaithae2025@";
+        let expenseCount = 0;
+        let allData = {};
+        let isOnline = true;
+
+        // Theo dõi trạng thái kết nối
+        firebase.firestore().enablePersistence()
+            .catch((err) => {
+                console.log('Firebase persistence error: ', err);
+            });
+
+        // Lắng nghe trạng thái kết nối
+        firebase.firestore().onSnapshotsInSync(() => {
+            updateSyncStatus(true);
+        });
+
+        // Khởi tạo ứng dụng
+        async function initApp() {
+            // Khởi tạo ngày hiện tại
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('selectedDate').value = today;
+            document.getElementById('viewDate').value = today;
+            
+            // Tải dữ liệu từ Firebase
+            await loadAllData();
+            
+            // Tải danh sách thu ngân
+            await loadCashierList();
+            
+            // Thêm 20 khoản chi mặc định
+            for (let i = 0; i < 20; i++) {
+                addExpenseField();
+            }
+            
+            // Ẩn các tab không cần thiết
+            document.getElementById('viewTabBtn').classList.add('hidden');
+            document.getElementById('adminTabBtn').classList.add('hidden');
+            document.getElementById('exportBtn').classList.add('hidden');
+        }
+        
+        // Cập nhật trạng thái đồng bộ
+        function updateSyncStatus(online) {
+            isOnline = online;
+            const syncStatus = document.getElementById('syncStatus');
+            const syncText = document.getElementById('syncText');
+            const syncLoader = document.getElementById('syncLoader');
+            
+            syncStatus.classList.remove('hidden');
+            
+            if (online) {
+                syncStatus.className = 'sync-status sync-online';
+                syncText.textContent = 'Đã kết nối';
+                syncLoader.classList.add('hidden');
+            } else {
+                syncStatus.className = 'sync-status sync-offline';
+                syncText.textContent = 'Đang đồng bộ...';
+                syncLoader.classList.remove('hidden');
+            }
+        }
+        
+        // Tải danh sách thu ngân từ Firebase
+        async function loadCashierList() {
+            try {
+                const cashierSelect = document.getElementById('cashierName');
+                cashierSelect.innerHTML = '<option value="">-- Chọn thu ngân --</option>';
+                
+                const usersSnapshot = await db.collection('users').get();
+                
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    if (userData.role !== 'admin') {
+                        const option = document.createElement('option');
+                        option.value = doc.id;
+                        option.textContent = doc.id;
+                        cashierSelect.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading cashiers:', error);
+                alert('Lỗi khi tải danh sách thu ngân');
+            }
+        }
+        
+        // Đăng nhập
+        async function login() {
+            const cashierName = document.getElementById('cashierName').value;
+            
+            if (!cashierName) {
+                alert('Vui lòng chọn tên thu ngân!');
+                return;
+            }
+            
+            try {
+                // Kiểm tra xem thu ngân có tồn tại không
+                const userDoc = await db.collection('users').doc(cashierName).get();
+                
+                if (!userDoc.exists) {
+                    alert('Thu ngân không tồn tại!');
+                    return;
+                }
+                
+                currentUser = cashierName;
+                isAdmin = false;
+                
+                // Hiển thị màn hình chính
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainScreen').classList.remove('hidden');
+                document.getElementById('currentUser').textContent = currentUser;
+                
+                // Ẩn các tab không cần thiết cho thu ngân
+                document.getElementById('viewTabBtn').classList.add('hidden');
+                document.getElementById('adminTabBtn').classList.add('hidden');
+                document.getElementById('exportBtn').classList.add('hidden');
+                
+                // Khóa chỉnh sửa ngày cho thu ngân
+                document.getElementById('selectedDate').disabled = true;
+                
+                // Tính toán tự động
+                calculateTotals();
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Lỗi khi đăng nhập');
+            }
+        }
+        
+        // Hiển thị đăng nhập admin
+        async function showAdminLogin() {
+            const password = prompt('Nhập mật khẩu Admin:');
+            
+            if (password === adminPassword) {
+                try {
+                    // Kiểm tra admin trong Firebase
+                    const adminDoc = await db.collection('users').doc('admin').get();
+                    
+                    if (!adminDoc.exists) {
+                        // Tạo tài khoản admin nếu chưa có
+                        await db.collection('users').doc('admin').set({
+                            role: 'admin',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                    
+                    currentUser = 'admin';
+                    isAdmin = true;
+                    
+                    // Hiển thị màn hình chính
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('mainScreen').classList.remove('hidden');
+                    document.getElementById('currentUser').textContent = 'Quản trị viên';
+                    
+                    // Hiển thị tất cả các tab
+                    document.getElementById('viewTabBtn').classList.remove('hidden');
+                    document.getElementById('adminTabBtn').classList.remove('hidden');
+                    document.getElementById('exportBtn').classList.remove('hidden');
+                    
+                    // Cho phép chỉnh sửa ngày
+                    document.getElementById('selectedDate').disabled = false;
+                    
+                    // Tải dữ liệu người dùng
+                    await loadUserList();
+                    await loadInputHistory();
+                    
+                    // Tính toán tự động
+                    calculateTotals();
+                    
+                } catch (error) {
+                    console.error('Admin login error:', error);
+                    alert('Lỗi khi đăng nhập admin');
+                }
+            } else if (password !== null) {
+                alert('Mật khẩu Admin không đúng!');
+            }
+        }
+        
+        // Hiển thị panel admin
+        function showAdminPanel() {
+            if (isAdmin) {
+                switchTab('adminTab');
+            } else {
+                showAdminLogin();
+            }
+        }
+        
+        // Đăng xuất
+        function logout() {
+            currentUser = null;
+            isAdmin = false;
+            
+            // Hiển thị màn hình đăng nhập
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+        
+        // Chuyển tab
+        async function switchTab(tabName) {
+            // Ẩn tất cả các tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Bỏ active tất cả các tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Hiển thị tab được chọn
+            document.getElementById(tabName).classList.add('active');
+            
+            // Đánh dấu tab active
+            event.target.classList.add('active');
+            
+            // Nếu là tab admin và là admin, tải dữ liệu
+            if (tabName === 'adminTab' && isAdmin) {
+                await loadUserList();
+                await loadInputHistory();
+            }
+        }
+        
+        // Thêm khoản chi
+        function addExpenseField() {
+            expenseCount++;
+            const expenseContainer = document.getElementById('expenseContainer');
+            
+            const expenseItem = document.createElement('div');
+            expenseItem.className = 'expense-item';
+            expenseItem.id = `expense-${expenseCount}`;
+            
+            expenseItem.innerHTML = `
+                <input type="text" placeholder="Nội dung" id="expenseContent-${expenseCount}">
+                <input type="text" placeholder="0" id="expenseValue-${expenseCount}" 
+                       onblur="formatCurrency(this)" onfocus="unformatCurrency(this)" 
+                       style="width: 150px;" oninput="calculateTotals()">
+                <button class="btn btn-danger" onclick="removeExpenseField(${expenseCount})">X</button>
+            `;
+            
+            expenseContainer.appendChild(expenseItem);
+        }
+        
+        // Xóa khoản chi
+        function removeExpenseField(id) {
+            const expenseItem = document.getElementById(`expense-${id}`);
+            if (expenseItem) {
+                expenseItem.remove();
+                calculateTotals();
+            }
+        }
+        
+        // Định dạng tiền tệ
+        function formatCurrency(input) {
+            let value = input.value.replace(/\./g, '');
+            if (!isNaN(value) && value !== '') {
+                input.value = parseInt(value).toLocaleString('vi-VN');
+            }
+        }
+        
+        // Bỏ định dạng tiền tệ
+        function unformatCurrency(input) {
+            input.value = input.value.replace(/\./g, '');
+        }
+        
+        // Chuyển đổi chuỗi tiền tệ thành số
+        function parseCurrency(value) {
+            if (!value) return 0;
+            return parseInt(value.replace(/\./g, '')) || 0;
+        }
+        
+        // Tính toán tổng
+        function calculateTotals() {
+            // Thu nhập
+            const revenue = parseCurrency(document.getElementById('revenue').value);
+            const cash = parseCurrency(document.getElementById('cash').value);
+            const transfer = parseCurrency(document.getElementById('transfer').value);
+            const totalIncome = revenue + cash + transfer;
+            document.getElementById('totalIncome').value = totalIncome.toLocaleString('vi-VN');
+            
+            // Apps
+            const shoppeFood = parseCurrency(document.getElementById('shoppeFood').value);
+            const grabFood = parseCurrency(document.getElementById('grabFood').value);
+            const beeFood = parseCurrency(document.getElementById('beeFood').value);
+            const totalApps = shoppeFood + grabFood + beeFood;
+            document.getElementById('totalApps').value = totalApps.toLocaleString('vi-VN');
+            
+            // Chi phí
+            let totalExpense = 0;
+            for (let i = 1; i <= expenseCount; i++) {
+                const expenseValue = document.getElementById(`expenseValue-${i}`);
+                if (expenseValue) {
+                    totalExpense += parseCurrency(expenseValue.value);
+                }
+            }
+            document.getElementById('totalExpense').value = totalExpense.toLocaleString('vi-VN');
+            
+            // Tổng kết
+            const openingCash = 500000; // Đầu ca mặc định
+            const totalAfterOpening = cash + transfer - openingCash;
+            document.getElementById('totalAfterOpening').value = totalAfterOpening.toLocaleString('vi-VN');
+            
+            const otherIncome = parseCurrency(document.getElementById('otherIncome').value);
+            const totalReceived = totalAfterOpening + otherIncome + totalApps;
+            document.getElementById('totalReceived').value = totalReceived.toLocaleString('vi-VN');
+            
+            const totalIncomeFinal = totalReceived - totalExpense;
+            document.getElementById('totalIncomeFinal').value = totalIncomeFinal.toLocaleString('vi-VN');
+            
+            const actualTotal = transfer + cash + totalApps + totalExpense;
+            document.getElementById('actualTotal').value = actualTotal.toLocaleString('vi-VN');
+        }
+        
+        // Lưu dữ liệu lên Firebase
+        async function saveData() {
+            const date = document.getElementById('selectedDate').value;
+            if (!date) {
+                alert('Vui lòng chọn ngày!');
+                return false;
+            }
+            
+            try {
+                updateSyncStatus(false);
+                
+                // Thu thập dữ liệu
+                const data = {
+                    date: date,
+                    user: currentUser,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    revenue: parseCurrency(document.getElementById('revenue').value),
+                    cash: parseCurrency(document.getElementById('cash').value),
+                    transfer: parseCurrency(document.getElementById('transfer').value),
+                    shoppeFood: parseCurrency(document.getElementById('shoppeFood').value),
+                    grabFood: parseCurrency(document.getElementById('grabFood').value),
+                    beeFood: parseCurrency(document.getElementById('beeFood').value),
+                    staffDiscount: parseCurrency(document.getElementById('staffDiscount').value),
+                    otherIncome: parseCurrency(document.getElementById('otherIncome').value),
+                    expenses: []
+                };
+                
+                // Thu thập chi phí
+                for (let i = 1; i <= expenseCount; i++) {
+                    const content = document.getElementById(`expenseContent-${i}`);
+                    const value = document.getElementById(`expenseValue-${i}`);
+                    
+                    if (content && value && content.value && value.value) {
+                        data.expenses.push({
+                            content: content.value,
+                            value: parseCurrency(value.value)
+                        });
+                    }
+                }
+                
+                // Lưu lên Firebase
+                const docId = `${date}_${currentUser}`;
+                await db.collection('dailyExpenses').doc(docId).set(data);
+                
+                // Cập nhật dữ liệu cục bộ
+                if (!allData[date]) {
+                    allData[date] = [];
+                }
+                
+                const existingIndex = allData[date].findIndex(item => item.user === currentUser);
+                if (existingIndex !== -1) {
+                    allData[date][existingIndex] = data;
+                } else {
+                    allData[date].push(data);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Lỗi khi lưu dữ liệu: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Lưu và xuất ảnh
+        async function saveAndExport() {
+            if (await saveData()) {
+                generateReportImage();
+            }
+        }
+        
+        // Tạo ảnh báo cáo
+        function generateReportImage() {
+            const date = document.getElementById('selectedDate').value;
+            const reportContent = document.getElementById('reportContent');
+            
+            // Tạo nội dung báo cáo
+            let html = `
+                <div style="padding: 20px; background: white; max-width: 800px; margin: 0 auto;">
+                    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">BÁO CÁO THU CHI</h2>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <div><strong>Ngày:</strong> ${date}</div>
+                        <div><strong>Thu ngân:</strong> ${currentUser}</div>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <tr style="background-color: #f8f9fa;">
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">KHOẢN MỤC</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">SỐ TIỀN</th>
+                        </tr>
+            `;
+            
+            // Thêm phần thu
+            html += `
+                <tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">PHẦN THU</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Doanh thu</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('revenue').value}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Tiền mặt</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('cash').value}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Chuyển khoản</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('transfer').value}</td></tr>
+                <tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Thành tiền</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalIncome').value}</td></tr>
+                
+                <tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">APPS</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Shoppe Food</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('shoppeFood').value}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Grab Food</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('grabFood').value}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Bee Food</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('beeFood').value}</td></tr>
+                <tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng Apps</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalApps').value}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Giảm giá nhân viên</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('staffDiscount').value}</td></tr>
+            `;
+            
+            // Thêm phần chi
+            html += `<tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">PHẦN CHI</td></tr>`;
+            
+            for (let i = 1; i <= expenseCount; i++) {
+                const content = document.getElementById(`expenseContent-${i}`);
+                const value = document.getElementById(`expenseValue-${i}`);
+                
+                if (content && value && content.value && value.value) {
+                    html += `<tr><td style="padding: 8px; border: 1px solid #ddd;">${content.value}</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${value.value}</td></tr>`;
+                }
+            }
+            
+            html += `<tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng chi</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalExpense').value}</td></tr>`;
+            
+            // Thêm tổng kết
+            html += `
+                <tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">TỔNG KẾT</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Đầu ca (mặc định)</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">500.000</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Tổng cộng sau đầu ca</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalAfterOpening').value}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Thu khác</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('otherIncome').value}</td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd;">Tổng nhận</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalReceived').value}</td></tr>
+                <tr style="font-weight: bold; background-color: #d4edda;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng thu nhập</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalIncomeFinal').value}</td></tr>
+                <tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng thực tế</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('actualTotal').value}</td></tr>
+            `;
+            
+            html += `</table></div>`;
+            
+            reportContent.innerHTML = html;
+            
+            // Tạo ảnh từ nội dung
+            html2canvas(reportContent).then(canvas => {
+                const imageContainer = document.getElementById('exportImageContainer');
+                const exportedImage = document.getElementById('exportedImage');
+                
+                exportedImage.src = canvas.toDataURL('image/png');
+                imageContainer.classList.remove('hidden');
+                
+                // Cuộn đến phần hiển thị ảnh
+                imageContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        
+        // Tải ảnh xuống
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = `BaoCaoThuChi_${document.getElementById('selectedDate').value}_${currentUser}.png`;
+            link.href = document.getElementById('exportedImage').src;
+            link.click();
+        }
+        
+        // Ẩn ảnh xuất
+        function hideExportImage() {
+            document.getElementById('exportImageContainer').classList.add('hidden');
+        }
+        
+        // Tải tất cả dữ liệu từ Firebase
+        async function loadAllData() {
+            try {
+                updateSyncStatus(false);
+                
+                const snapshot = await db.collection('dailyExpenses')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                allData = {};
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const date = data.date;
+                    
+                    if (!allData[date]) {
+                        allData[date] = [];
+                    }
+                    
+                    allData[date].push(data);
+                });
+                
+                updateSyncStatus(true);
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Lỗi khi tải dữ liệu từ server');
+            }
+        }
+        
+        // Tải dữ liệu cho ngày được chọn
+        async function loadDataForDate() {
+            const date = document.getElementById('selectedDate').value;
+            if (!date) return;
+            
+            try {
+                // Reset form
+                document.getElementById('revenue').value = '';
+                document.getElementById('cash').value = '';
+                document.getElementById('transfer').value = '';
+                document.getElementById('shoppeFood').value = '';
+                document.getElementById('grabFood').value = '';
+                document.getElementById('beeFood').value = '';
+                document.getElementById('staffDiscount').value = '';
+                document.getElementById('otherIncome').value = '';
+                
+                // Reset chi phí
+                for (let i = 1; i <= expenseCount; i++) {
+                    const content = document.getElementById(`expenseContent-${i}`);
+                    const value = document.getElementById(`expenseValue-${i}`);
+                    
+                    if (content && value) {
+                        content.value = '';
+                        value.value = '';
+                    }
+                }
+                
+                // Tải dữ liệu từ Firebase
+                const docId = `${date}_${currentUser}`;
+                const doc = await db.collection('dailyExpenses').doc(docId).get();
+                
+                if (doc.exists) {
+                    const userData = doc.data();
+                    
+                    document.getElementById('revenue').value = userData.revenue.toLocaleString('vi-VN');
+                    document.getElementById('cash').value = userData.cash.toLocaleString('vi-VN');
+                    document.getElementById('transfer').value = userData.transfer.toLocaleString('vi-VN');
+                    document.getElementById('shoppeFood').value = userData.shoppeFood.toLocaleString('vi-VN');
+                    document.getElementById('grabFood').value = userData.grabFood.toLocaleString('vi-VN');
+                    document.getElementById('beeFood').value = userData.beeFood.toLocaleString('vi-VN');
+                    document.getElementById('staffDiscount').value = userData.staffDiscount.toLocaleString('vi-VN');
+                    document.getElementById('otherIncome').value = userData.otherIncome.toLocaleString('vi-VN');
+                    
+                    // Tải chi phí
+                    userData.expenses.forEach((expense, index) => {
+                        if (index < expenseCount) {
+                            document.getElementById(`expenseContent-${index+1}`).value = expense.content;
+                            document.getElementById(`expenseValue-${index+1}`).value = expense.value.toLocaleString('vi-VN');
+                        }
+                    });
+                }
+                
+                // Tính toán lại
+                calculateTotals();
+                
+            } catch (error) {
+                console.error('Error loading date data:', error);
+                alert('Lỗi khi tải dữ liệu ngày');
+            }
+        }
+        
+        // Tải dữ liệu xem
+        async function loadViewData() {
+            const date = document.getElementById('viewDate').value;
+            const viewData = document.getElementById('viewData');
+            
+            if (!date) {
+                viewData.innerHTML = '<p>Vui lòng chọn ngày!</p>';
+                return;
+            }
+            
+            try {
+                // Tải dữ liệu từ Firebase cho ngày cụ thể
+                const snapshot = await db.collection('dailyExpenses')
+                    .where('date', '==', date)
+                    .get();
+                
+                if (snapshot.empty) {
+                    viewData.innerHTML = '<p>Không có dữ liệu cho ngày này!</p>';
+                    return;
+                }
+                
+                let html = '<table>';
+                html += '<tr><th>Thu ngân</th><th>Thời gian</th><th>Tiền mặt</th><th>Chuyển khoản</th><th>Tổng thu</th><th>Tổng chi</th><th>Tổng Apps</th><th>Tổng cộng</th></tr>';
+                
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    const totalIncome = item.revenue + item.cash + item.transfer;
+                    const totalApps = item.shoppeFood + item.grabFood + item.beeFood;
+                    const totalExpense = item.expenses.reduce((sum, expense) => sum + expense.value, 0);
+                    const totalAfterOpening = item.cash + item.transfer - 500000;
+                    const totalReceived = totalAfterOpening + item.otherIncome + totalApps;
+                    const totalIncomeFinal = totalReceived - totalExpense;
+                    
+                    html += `<tr>
+                        <td>${item.user}</td>
+                        <td>${item.timestamp?.toDate().toLocaleString('vi-VN') || 'N/A'}</td>
+                        <td class="currency">${item.cash.toLocaleString('vi-VN')}</td>
+                        <td class="currency">${item.transfer.toLocaleString('vi-VN')}</td>
+                        <td class="currency">${totalIncome.toLocaleString('vi-VN')}</td>
+                        <td class="currency">${totalExpense.toLocaleString('vi-VN')}</td>
+                        <td class="currency">${totalApps.toLocaleString('vi-VN')}</td>
+                        <td class="currency">${totalIncomeFinal.toLocaleString('vi-VN')}</td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                viewData.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading view data:', error);
+                viewData.innerHTML = '<p>Lỗi khi tải dữ liệu</p>';
+            }
+        }
+        
+        // Tải danh sách người dùng
+        async function loadUserList() {
+            try {
+                const userList = document.getElementById('userList');
+                const snapshot = await db.collection('users').get();
+                
+                let html = '<h3>Danh sách thu ngân</h3>';
+                
+                snapshot.forEach(doc => {
+                    if (doc.id !== 'admin') {
+                        html += `
+                            <div class="user-item">
+                                <div>${doc.id}</div>
+                                <div class="user-actions">
+                                    <button class="btn btn-danger" onclick="deleteUser('${doc.id}')">Xóa</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                userList.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                alert('Lỗi khi tải danh sách thu ngân');
+            }
+        }
+        
+        // Thêm người dùng
+        async function addUser() {
+            const username = document.getElementById('newUserName').value;
+            
+            if (!username) {
+                alert('Vui lòng nhập tên thu ngân!');
+                return;
+            }
+            
+            try {
+                // Kiểm tra xem user đã tồn tại chưa
+                const userDoc = await db.collection('users').doc(username).get();
+                
+                if (userDoc.exists) {
+                    alert('Tên thu ngân đã tồn tại!');
+                    return;
+                }
+                
+                // Thêm user mới
+                await db.collection('users').doc(username).set({
+                    role: 'cashier',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert('Đã thêm thu ngân thành công!');
+                document.getElementById('newUserName').value = '';
+                
+                // Cập nhật danh sách
+                await loadUserList();
+                await loadCashierList();
+                
+            } catch (error) {
+                console.error('Error adding user:', error);
+                alert('Lỗi khi thêm thu ngân');
+            }
+        }
+        
+        // Xóa người dùng
+        async function deleteUser(username) {
+            if (confirm(`Bạn có chắc muốn xóa thu ngân ${username}?`)) {
+                try {
+                    await db.collection('users').doc(username).delete();
+                    
+                    // Cập nhật danh sách
+                    await loadUserList();
+                    await loadCashierList();
+                    
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    alert('Lỗi khi xóa thu ngân');
+                }
+            }
+        }
+        
+        // Tải lịch sử nhập liệu
+        async function loadInputHistory() {
+            try {
+                const inputHistory = document.getElementById('inputHistory');
+                const snapshot = await db.collection('dailyExpenses')
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .get();
+                
+                let html = '<table>';
+                html += '<tr><th>Ngày</th><th>Thu ngân</th><th>Thời gian</th><th>Tiền mặt</th><th>Chuyển khoản</th><th>Tổng thu</th></tr>';
+                
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    const totalIncome = item.revenue + item.cash + item.transfer;
+                    
+                    html += `<tr>
+                        <td>${item.date}</td>
+                        <td>${item.user}</td>
+                        <td>${item.timestamp?.toDate().toLocaleString('vi-VN') || 'N/A'}</td>
+                        <td class="currency">${item.cash.toLocaleString('vi-VN')}</td>
+                        <td class="currency">${item.transfer.toLocaleString('vi-VN')}</td>
+                        <td class="currency">${totalIncome.toLocaleString('vi-VN')}</td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                inputHistory.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading history:', error);
+                inputHistory.innerHTML = '<p>Lỗi khi tải lịch sử</p>';
+            }
+        }
+        
+        // Xuất ra Excel
+        async function exportToExcel() {
+            try {
+                if (Object.keys(allData).length === 0) {
+                    alert('Không có dữ liệu để xuất!');
+                    return;
+                }
+                
+                // Tạo workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Tạo sheet tổng hợp
+                const summaryData = [['Ngày', 'Thứ', 'Nhân viên', 'Tiền mặt', 'Chuyển khoản', 'Thu', 'Chi', 'Shoppe Food', 'Grab Food', 'Bee Food', 'Tổng App', 'Tổng cộng']];
+                
+                // Sắp xếp dữ liệu theo ngày
+                const sortedDates = Object.keys(allData).sort((a, b) => new Date(a) - new Date(b));
+                
+                sortedDates.forEach(date => {
+                    allData[date].forEach(item => {
+                        const dateObj = new Date(date);
+                        const weekday = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'][dateObj.getDay()];
+                        const totalIncome = item.revenue + item.cash + item.transfer;
+                        const totalApps = item.shoppeFood + item.grabFood + item.beeFood;
+                        const totalExpense = item.expenses.reduce((sum, expense) => sum + expense.value, 0);
+                        const totalAfterOpening = item.cash + item.transfer - 500000;
+                        const totalReceived = totalAfterOpening + item.otherIncome + totalApps;
+                        const totalIncomeFinal = totalReceived - totalExpense;
+                        
+                        summaryData.push([
+                            date,
+                            weekday,
+                            item.user,
+                            item.cash,
+                            item.transfer,
+                            totalIncome,
+                            totalExpense,
+                            item.shoppeFood,
+                            item.grabFood,
+                            item.beeFood,
+                            totalApps,
+                            totalIncomeFinal
+                        ]);
+                    });
+                });
+                
+                const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, summarySheet, 'Tổng hợp');
+                
+                // Tạo sheet cho từng ngày
+                sortedDates.forEach(date => {
+                    const dateData = [['Nội dung', 'Giá trị']];
+                    
+                    // Thêm thông tin thu
+                    dateData.push(['DOANH THU', '']);
+                    dateData.push(['Doanh thu', allData[date][0].revenue]);
+                    dateData.push(['Tiền mặt', allData[date][0].cash]);
+                    dateData.push(['Chuyển khoản', allData[date][0].transfer]);
+                    dateData.push(['', '']);
+                    
+                    // Thêm thông tin apps
+                    dateData.push(['APPS', '']);
+                    dateData.push(['Shoppe Food', allData[date][0].shoppeFood]);
+                    dateData.push(['Grab Food', allData[date][0].grabFood]);
+                    dateData.push(['Bee Food', allData[date][0].beeFood]);
+                    dateData.push(['', '']);
+                    
+                    // Thêm thông tin chi
+                    dateData.push(['CHI PHÍ', '']);
+                    allData[date][0].expenses.forEach(expense => {
+                        dateData.push([expense.content, expense.value]);
+                    });
+                    dateData.push(['', '']);
+                    
+                    // Thêm tổng kết
+                    dateData.push(['TỔNG KẾT', '']);
+                    const totalIncome = allData[date][0].revenue + allData[date][0].cash + allData[date][0].transfer;
+                    const totalApps = allData[date][0].shoppeFood + allData[date][0].grabFood + allData[date][0].beeFood;
+                    const totalExpense = allData[date][0].expenses.reduce((sum, expense) => sum + expense.value, 0);
+                    const totalAfterOpening = allData[date][0].cash + allData[date][0].transfer - 500000;
+                    const totalReceived = totalAfterOpening + allData[date][0].otherIncome + totalApps;
+                    const totalIncomeFinal = totalReceived - totalExpense;
+                    
+                    dateData.push(['Tổng thu', totalIncome]);
+                    dateData.push(['Tổng chi', totalExpense]);
+                    dateData.push(['Tổng Apps', totalApps]);
+                    dateData.push(['Tổng cộng', totalIncomeFinal]);
+                    
+                    const dateSheet = XLSX.utils.aoa_to_sheet(dateData);
+                    XLSX.utils.book_append_sheet(wb, dateSheet, date);
+                });
+                
+                // Xuất file
+                XLSX.writeFile(wb, 'So_Thu_Chi_Hang_Ngay.xlsx');
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Lỗi khi xuất Excel');
+            }
+        }
+        
+        // Khởi tạo ứng dụng khi trang được tải
+        window.onload = initApp;
+        
+        // Thêm sự kiện tính toán tự động
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => {
+                if (input.id !== 'totalIncome' && input.id !== 'totalApps' && 
+                    input.id !== 'totalExpense' && input.id !== 'totalAfterOpening' && 
+                    input.id !== 'totalReceived' && input.id !== 'totalIncomeFinal' && 
+                    input.id !== 'actualTotal') {
+                    input.addEventListener('input', calculateTotals);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
