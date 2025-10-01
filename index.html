@@ -540,7 +540,7 @@
                 </div>
 
                 <div class="form-group" style="margin-top: 30px; padding-top: 15px; border-top: 2px solid #ddd;">
-                    <label style="color: var(--danger-color); font-size: 18px;">TỔNG THU NHẬP:</label>
+                    <label style="color: var(--danger-color); font-size: 18px;">TỔNG THU NHẬP (Theo yêu cầu):</label>
                     <input type="text" id="totalIncomeFinalInput" value="0" readonly style="color: var(--danger-color); font-weight: bold; background-color: #fcebeb !important; border: 3px solid var(--danger-color) !important; font-size: 24px !important; height: 50px !important;">
                     <small class="note" style="font-size: 14px; font-weight: bold;">Công thức: Tiền mặt + Chuyển khoản + Apps + Thu khác + Tổng Chi.</small>
                 </div>
@@ -548,12 +548,15 @@
                 <div class="form-group">
                     <label style="color: var(--success-color); font-size: 18px; font-weight: bold;">TỔNG NHẬN SAU CÁC CHI PHÍ:</label>
                     <input type="text" id="totalAfterExpensesInput" value="0" readonly style="color: var(--success-color); font-weight: bold; background-color: #eaf7ed !important; border: 3px solid var(--success-color) !important; font-size: 24px !important; height: 50px !important;">
-                    <small class="note" style="font-size: 14px; font-weight: bold;">Công thức: TỔNG THU NHẬP - Tổng Chi - Đầu ca.</small>
+                    <small class="note" style="font-size: 14px; font-weight: bold;">Công thức: (Tiền mặt + Chuyển khoản + Apps + Thu khác) - Tổng Chi.</small>
                 </div>
                 </div>
 
             <div class="action-buttons">
-                <button class="btn btn-success" onclick="saveAndExport()">Lưu và Xuất Ảnh</button>
+                <button class="btn btn-success" onclick="saveAndExport()">Lưu và Xem Ảnh</button>
+                
+                <button class="btn btn-zalo" onclick="saveCopyAndShare()" id="saveShareBtn" style="flex: 2;">✅ Lưu, Sao chép Ảnh & Mở Zalo</button>
+                
                 <button class="btn btn-danger" onclick="clearDataForDate()" id="clearDateBtn">Xóa dữ liệu ngày này</button>
             </div>
         </div>
@@ -563,7 +566,6 @@
                 </div>
             <img id="exportedImage" src="" alt="Báo cáo thu chi" style="max-width: 100%; height: auto; display: none;">
             <div style="margin-top: 20px;" class="action-buttons">
-                <button class="btn btn-zalo" onclick="shareViaZalo()" id="zaloShareBtn">📤 Chia sẻ Báo cáo qua Zalo</button>
                 <button class="btn btn-primary" onclick="downloadImage()">Tải ảnh xuống</button>
                 <button class="btn btn-danger" onclick="hideExportImage()">Đóng</button>
             </div>
@@ -611,6 +613,7 @@
         
         const getDayOfWeek = (dateString) => {
             const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            // Cần parse đúng định dạng YYYY-MM-DD và dùng UTC để tránh lệch múi giờ
             const date = new Date(dateString + 'T00:00:00Z');
             return days[date.getUTCDay()]; 
         };
@@ -665,17 +668,21 @@
             }
             document.getElementById('totalExpense').value = formatNumber(totalExpense);
 
-            // 4. Giảm giá nhân viên
+            // 4. Giảm giá nhân viên (CHỈ GHI NHẬN, KHÔNG TÍNH VÀO TỔNG KẾT)
             const staffDiscount = parseCurrency(document.getElementById('staffDiscount').value);
 
             // KẾT QUẢ CUỐI CÙNG
             const totalReceived = transfer + totalApps;
             document.getElementById('totalReceived').value = formatNumber(totalReceived);
             
-            // Công thức Lãi/Lỗ: (Tiền mặt + Chuyển khoản) + Apps + Thu khác - Tổng Chi - Giảm giá NV
-            const totalIncomeFinal = totalIncome + totalApps + otherIncome - totalExpense - staffDiscount; 
+            // 1. TỔNG THU NHẬP (Theo yêu cầu: Tiền mặt + Chuyển khoản + Apps + Thu khác + Tổng Chi)
+            const totalIncomeFinal = totalIncome + totalApps + otherIncome + totalExpense; 
             document.getElementById('totalIncomeFinalInput').value = formatNumber(totalIncomeFinal);
 
+            // 2. TỔNG NHẬN SAU CÁC CHI PHÍ (Kết quả cuối cùng: (Tiền mặt + Chuyển khoản + Apps + Thu khác) - Tổng Chi)
+            const totalAfterExpenses = totalIncome + totalApps + otherIncome - totalExpense;
+            document.getElementById('totalAfterExpensesInput').value = formatNumber(totalAfterExpenses);
+            
             /* --- CẬP NHẬT CÔNG THỨC TÍNH TIỀN MẶT THEO YÊU CẦU MỚI --- */
             
             // TỔNG TIỀN MẶT HIỆN CÓ: Chỉ lấy Tiền mặt thu (cash)
@@ -686,7 +693,7 @@
             const actualTotal = totalAfterOpening - OPENING_CASH;
             document.getElementById('actualTotal').value = formatNumber(actualTotal);
         }
-        
+
         // --- QUẢN LÝ FORM CHI ---
 
         function addExpenseItem(content = '', value = 0, isInitial = false) {
@@ -1087,9 +1094,82 @@
             window.location.reload();
         }
 
-        // --- HÀM XUẤT ẢNH / ZALO SHARE (ĐÃ CẬP NHẬT) ---
+        // --- HÀM XUẤT ẢNH / ZALO SHARE MỚI ---
+        
+        // Hàm tiện ích: Chuyển đổi Data URL (Base64) thành Blob
+        function dataURLtoBlob(dataurl) {
+            const arr = dataurl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], { type: mime });
+        }
 
-        function generateReportImage() {
+        // Hàm Sao chép Ảnh vào Clipboard (Được gọi nội bộ)
+        function copyImageToClipboard() {
+            const exportedImage = document.getElementById('exportedImage');
+            if (!exportedImage || !exportedImage.src || exportedImage.src.length < 10) {
+                console.error('Không tìm thấy ảnh báo cáo để sao chép.');
+                return false; 
+            }
+
+            const dataURL = exportedImage.src;
+            const imageBlob = dataURLtoBlob(dataURL);
+            
+            // Logic sao chép
+            if (navigator.clipboard && navigator.clipboard.write) {
+                const item = new ClipboardItem({ [imageBlob.type]: imageBlob });
+                
+                navigator.clipboard.write([item])
+                    .then(() => {
+                        console.log('✅ Ảnh đã được sao chép vào bộ nhớ tạm thành công.');
+                    })
+                    .catch(err => {
+                        console.error('❌ Lỗi khi sao chép ảnh vào clipboard:', err);
+                        // Dù lỗi, ta vẫn tiếp tục mở Zalo và đã tải ảnh xuống
+                        alert('Lỗi: Trình duyệt chặn sao chép ảnh tự động. Ảnh vẫn được tải xuống và Zalo đã mở. Vui lòng gửi ảnh thủ công.');
+                    });
+                return true; 
+            } else {
+                console.warn('Trình duyệt không hỗ trợ sao chép ảnh tự động.');
+                return false;
+            }
+        }
+        
+        // HÀM GỘP BƯỚC: LƯU DỮ LIỆU, TẠO ẢNH, SAO CHÉP VÀ MỞ ZALO
+        function saveCopyAndShare() {
+            // 1. Lưu dữ liệu
+            saveData(); 
+
+            // 2. Định nghĩa Callback (hàm sẽ chạy sau khi html2canvas tạo ảnh xong)
+            const shareCallback = () => {
+                // 3. Tải ảnh xuống
+                downloadImage();
+
+                // 4. Sao chép ảnh vào clipboard
+                const isCopied = copyImageToClipboard();
+
+                // 5. Thông báo và mở Zalo
+                if(isCopied) {
+                     alert(`✅ Đã Lưu Dữ liệu, Tải ảnh xuống & Sao chép vào bộ nhớ tạm!\n\n🔔 VUI LÒNG MỞ ZALO và bấm DÁN (Paste) để gửi báo cáo.`);
+                } else {
+                    alert(`❌ Không thể sao chép ảnh vào bộ nhớ tạm. Ảnh đã được LƯU và TẢI XUỐNG.\n\n🔔 Vui lòng MỞ ZALO và gửi ảnh thủ công.`);
+                }
+
+                window.open('https://chat.zalo.me/', '_blank');
+                hideExportImage(); // Đóng container sau khi chia sẻ
+            };
+            
+            // 6. Gọi hàm tạo ảnh với callback
+            generateReportImage(shareCallback);
+        }
+
+        // Cập nhật generateReportImage để nhận thêm tham số callback
+        function generateReportImage(callback = null) {
             const date = document.getElementById('selectedDate').value;
             const reportContent = document.getElementById('reportContent');
             
@@ -1112,7 +1192,7 @@
             const totalIncomeFinalFormatted = document.getElementById('totalIncomeFinalInput').value;
             const actualTotalFormatted = document.getElementById('actualTotal').value;
             const totalAfterOpeningFormatted = document.getElementById('totalAfterOpening').value;
-            const totalAfterExpensesFormatted = document.getElementById('totalAfterExpensesInput').value; 
+            const totalAfterExpensesFormatted = document.getElementById('totalAfterExpensesInput').value; // <--- GET NEW VALUE
 
 
             let html = `
@@ -1162,7 +1242,7 @@
                 const exportedImage = document.getElementById('exportedImage');
                 
                 reportContent.classList.add('hidden');
-                canvas.id = 'tempCanvas'; // Đảm bảo canvas có ID để Zalo share dùng
+                canvas.id = 'tempCanvas';
                 canvas.style.maxWidth = '100%';
                 canvas.style.height = 'auto';
                 
@@ -1175,13 +1255,23 @@
                 
                 imageContainer.classList.remove('hidden');
                 
-                imageContainer.scrollIntoView({ behavior: 'smooth' });
+                // Chỉ scroll vào khung xem nếu không có callback (tức là chỉ bấm nút "Lưu và Xem Ảnh")
+                if (!callback) {
+                    imageContainer.scrollIntoView({ behavior: 'smooth' });
+                }
+
+                // GỌI CALLBACK NẾU CÓ (Để chạy logic chia sẻ Zalo)
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
             });
         }
 
+        // Cập nhật: Hàm này giờ chỉ để Lưu dữ liệu và hiển thị khung xem ảnh
         function saveAndExport() {
             saveData();
-            generateReportImage();
+            // generateReportImage() giờ nhận tham số callback, gọi không tham số sẽ không chạy logic chia sẻ Zalo
+            generateReportImage(); 
         }
         
         function downloadImage() {
@@ -1197,63 +1287,7 @@
             document.body.removeChild(a);
         }
 
-        /* --- PHẦN CẬP NHẬT THEO YÊU CẦU --- */
-        function shareViaZalo() {
-            if (!isAdmin) {
-                const canvas = document.getElementById('tempCanvas'); // Lấy canvas đã tạo
-                
-                if (!canvas) {
-                    alert('Lỗi: Vui lòng nhấn "Lưu và Xuất Ảnh" trước khi chia sẻ.');
-                    return;
-                }
-
-                // Kiểm tra Web Share API có hỗ trợ chia sẻ tệp không (Chủ yếu là Mobile)
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [] })) {
-                    // --- Phương án 1: Sử dụng Web Share API (Ưu tiên) ---
-                    
-                    canvas.toBlob(async (blob) => {
-                        if (!blob) {
-                            alert('Lỗi: Không thể tạo tệp ảnh để chia sẻ.');
-                            return;
-                        }
-                        
-                        const date = document.getElementById('selectedDate').value;
-                        const fileName = `BaoCaoThuChi_${date}_${currentUser}.png`;
-                        const file = new File([blob], fileName, { type: 'image/png' });
-
-                        try {
-                            await navigator.share({
-                                title: `Báo cáo thu chi ngày ${date}`,
-                                text: `[Báo cáo Thu Chi] ${currentUser} ngày ${date}`,
-                                files: [file],
-                            });
-                            console.log('Chia sẻ thành công qua giao diện native.');
-                        } catch (error) {
-                            if (error.name !== 'AbortError') {
-                                console.error('Lỗi khi chia sẻ:', error);
-                                // Fallback nếu chia sẻ thất bại (ví dụ: người dùng hủy, không có ứng dụng phù hợp)
-                                // Vẫn tải ảnh xuống để người dùng chia sẻ thủ công
-                                downloadImage(); 
-                                alert(`Lỗi khi mở giao diện chia sẻ. Ảnh đã được tải xuống.\n\n🔔 VUI LÒNG CHUYỂN QUA ZALO và gửi ảnh vừa tải.`);
-                                window.open('https://chat.zalo.me/', '_blank');
-                            }
-                        }
-                    }, 'image/png');
-                
-                } else {
-                    // --- Phương án 2: Dự phòng cho Desktop hoặc trình duyệt cũ ---
-                    // Tải ảnh xuống và hướng dẫn người dùng tự gửi qua Zalo web/app
-                    downloadImage(); 
-                    alert(`Giao diện chia sẻ tự động không được hỗ trợ trên thiết bị/trình duyệt này.\n\n✅ Ảnh đã được tải xuống thư viện ảnh của bạn.\n\n🔔 VUI LÒNG CHUYỂN QUA ZALO và gửi ảnh vừa tải.`);
-                    // Mở Zalo web chat tab mới
-                    window.open('https://chat.zalo.me/', '_blank');
-                }
-
-            } else {
-                 alert('Chức năng chia sẻ Zalo chỉ dành cho Nhân viên Thu ngân.');
-            }
-        }
-        /* --- KẾT THÚC PHẦN CẬP NHẬT --- */
+        // ĐÃ XÓA HÀM shareViaZalo CŨ
 
         function hideExportImage() {
             document.getElementById('exportImageContainer').classList.add('hidden');
@@ -1317,7 +1351,7 @@
                             (data.totalApps || 0),
                             (data.otherIncome || 0),
                             (data.totalIncomeFinal || 0), // TỔNG THU NHẬP (Công thức +)
-                            (data.totalAfterExpenses || 0) // TỔNG NHẬN SAU CHI PHÍ (Công thức mới)
+                            (data.totalAfterExpenses || 0) // TỔNG NHẬN SAU CHI PHÍ (Công thức -)
                         ]);
 
                         // 2. Tạo SHEET CHI TIẾT cho từng ngày 
@@ -1360,7 +1394,7 @@
                     summarySheet['!cols'] = [
                         { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
                         { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, 
-                        { wch: 15 }, { wch: 20 }, { wch: 20 } 
+                        { wch: 15 }, { wch: 20 }, { wch: 20 } // Thêm 1 cột cho TỔNG NHẬN SAU CHI PHÍ
                     ];
                     XLSX.utils.book_append_sheet(wb, summarySheet, 'TỔNG HỢP');
                     wb.SheetNames.unshift(wb.SheetNames.pop());
