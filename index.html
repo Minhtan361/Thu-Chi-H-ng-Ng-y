@@ -6,1479 +6,1359 @@
     <title>Sổ Thu Chi Hàng Ngày</title>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- Firebase Auth -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
     <style>
+        /* ========================================= */
+        /* 1. CSS Nâng Cấp Giao Diện (Mobile First) */
+        /* ========================================= */
+        :root {
+            --primary-color: #3498db;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --bg-light: #ecf0f1;
+            --text-dark: #2c3e50;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Loại bỏ highlight khi chạm */
         }
         
         body {
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
             line-height: 1.6;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px; /* Giảm padding cho mobile */
         }
         
+        /* Header */
         header {
-            background-color: #2c3e50;
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
             color: white;
-            padding: 15px 0;
+            padding: 15px 10px;
             text-align: center;
-            border-radius: 8px;
+            border-radius: 8px; /* Giảm bo góc */
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        
-        .user-info {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+        }
+
+        header .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        #welcomeMessage {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
         }
         
+        /* Buttons */
         .btn {
-            padding: 10px 15px;
+            padding: 12px 20px; /* Tăng kích thước nút */
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 15px;
+            width: 100%; /* Full width trên mobile */
         }
         
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
         }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-zalo { background-color: #0088ff; color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-warning { background-color: var(--warning-color); color: var(--text-dark); }
+        .btn-sm { padding: 8px 12px; font-size: 13px; width: auto; margin: 3px; }
         
-        .btn-primary:hover {
-            background-color: #2980b9;
-        }
-        
-        .btn-success {
-            background-color: #2ecc71;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background-color: #27ae60;
-        }
-        
-        .btn-danger {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-        
-        .btn-warning {
-            background-color: #f39c12;
-            color: white;
-        }
-        
-        .btn-warning:hover {
-            background-color: #d35400;
-        }
-        
+        /* Cards */
         .card {
             background-color: white;
-            border-radius: 8px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 15px; /* Giảm padding cho mobile */
             margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid var(--primary-color);
         }
         
         .card-title {
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 700;
             margin-bottom: 15px;
-            color: #2c3e50;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+            color: var(--text-dark);
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
         }
         
+        /* Forms */
         .form-group {
             margin-bottom: 15px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 14px;
         }
         
         input, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
             font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+
+        input[readonly] {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            color: var(--text-dark);
         }
         
         .row {
             display: flex;
             flex-wrap: wrap;
-            margin: 0 -10px;
+            margin: 0 -5px; /* Giảm margin âm */
         }
         
         .col {
-            flex: 1;
-            padding: 0 10px;
-            min-width: 200px;
+            flex: 1 1 100%; /* 100% chiều rộng trên mobile */
+            padding: 0 5px;
+            min-width: 0; 
+        }
+
+        /* Responsive for Desktop/Tablet */
+        @media (min-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .col {
+                flex: 1;
+                padding: 0 12px;
+                min-width: 300px;
+            }
+            .btn {
+                width: auto;
+            }
         }
         
         .hidden {
-            display: none;
+            display: none !important;
         }
         
+        /* Login */
         .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
+            max-width: 400px; /* Giảm max-width */
+            margin: 50px auto;
+            padding: 25px;
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .login-title {
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
-            margin-bottom: 20px;
-            color: #2c3e50;
         }
         
-        .admin-login {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-        
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        
-        .total-row {
-            font-weight: bold;
-            background-color: #e8f4fd;
-        }
-        
-        .currency {
-            text-align: right;
-        }
-        
-        .date-selector {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .date-selector input {
-            width: auto;
-            margin-right: 10px;
-        }
-        
-        .expense-item {
-            display: flex;
+        /* Notes (Ghi chú) */
+        .note {
+            display: block;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
             margin-bottom: 10px;
         }
         
-        .expense-item input {
-            margin-right: 10px;
+        /* Expense list style */
+        .expense-item {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            align-items: center;
         }
-        
-        .expense-item:last-child {
-            margin-bottom: 0;
+        .expense-item input[type="text"]:first-child {
+            flex: 2;
         }
-        
+        .expense-item input[type="text"]:nth-child(2) {
+            flex: 1;
+            min-width: 100px;
+        }
+        .expense-item .btn-danger {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            margin: 0;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
         .add-expense-btn {
             margin-top: 10px;
         }
-        
-        .tabs {
+
+        /* Date Selector for employee */
+        .date-selector-container {
             display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
         }
-        
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
+        .date-selector-container input[type="date"] {
+            width: 100%;
         }
-        
-        .tab.active {
-            border-bottom: 3px solid #3498db;
-            font-weight: bold;
-            color: #3498db;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .summary-table {
-            margin-top: 20px;
-        }
-        
-        .alert {
-            padding: 10px 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .user-management {
-            margin-top: 20px;
-        }
-        
-        .user-list {
-            margin-top: 15px;
-        }
-        
-        .user-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .user-item:last-child {
-            border-bottom: none;
-        }
-        
-        .user-actions button {
-            margin-left: 5px;
-        }
-        
-        .export-image-container {
-            text-align: center;
-            margin-top: 20px;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        
-        #exportedImage {
-            max-width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 15px;
-        }
-        
+
+        /* Action Buttons */
         .action-buttons {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-top: 20px;
         }
+
+        @media (min-width: 768px) {
+            .action-buttons {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+            .date-selector-container {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
         
-        .action-buttons button {
+        /* Admin Report Table */
+        #adminReportTable {
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        #adminReportTable thead th {
+            padding: 8px;
+        }
+
+        #adminReportTable tbody td {
+            padding: 8px;
+            border-bottom: 1px solid #ecf0f1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Chỉnh sửa layout cho Staff Discount */
+        .staff-discount-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .staff-discount-item > div {
             flex: 1;
         }
-        
-        .sync-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 1000;
+        .discount-result {
+            padding: 12px;
+            border: 1px dashed #2ecc71;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: right;
+            background-color: #f7fcf7;
+            font-size: 16px;
+            min-height: 43px; /* Đảm bảo chiều cao như input */
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        /* Employee list for Admin */
+        .employee-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .employee-row:last-child {
+            border-bottom: none;
         }
         
-        .sync-online {
-            background-color: #2ecc71;
-            color: white;
-        }
-        
-        .sync-offline {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Thêm vào cuối thẻ <style> */
-/* Tối ưu hóa cho màn hình nhỏ (điện thoại) */
-@media (max-width: 768px) {
-    .row {
-        flex-direction: column; /* Xếp chồng các cột */
-    }
-
-    .col {
-        padding: 0;
-        min-width: 100%; /* Cột chiếm toàn bộ chiều rộng */
-    }
-
-    .expense-item {
-        flex-direction: column; /* Xếp chồng các thành phần chi phí */
-        align-items: stretch;
-        margin-bottom: 15px; /* Tăng khoảng cách để dễ tương tác */
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background-color: #f9f9f9;
-    }
-
-    .expense-item input[type="text"] {
-        width: 100% !important; /* Đảm bảo ô nhập liệu chiếm toàn bộ chiều rộng */
-        margin-right: 0;
-        margin-bottom: 8px; /* Khoảng cách giữa Nội dung và Giá trị */
-    }
-
-    .expense-item button {
-        width: 100%; /* Nút Xóa cũng chiếm toàn bộ chiều rộng */
-        margin-left: 0;
-    }
-
-    /* Đảm bảo input giá trị chi phí không bị giới hạn chiều rộng cũ */
-    #expenseContainer input[style*="width: 150px"] {
-        width: 100% !important;
-    }
-}
     </style>
 </head>
 <body>
-    <!-- Trạng thái đồng bộ -->
-    <div id="syncStatus" class="sync-status hidden">
-        <span id="syncText"></span>
-        <span id="syncLoader" class="loading hidden"></span>
-    </div>
 
-    <!-- Màn hình đăng nhập -->
-    <div id="loginScreen" class="container">
-        <div class="login-container">
-            <h2 class="login-title">ĐĂNG NHẬP THU NGÂN</h2>
-            <div class="form-group">
-                <label for="cashierName">Tên thu ngân:</label>
-                <select id="cashierName">
-                    <option value="">-- Chọn thu ngân --</option>
-                    <!-- Các tên thu ngân sẽ được thêm động -->
+    <div id="loginBlock" class="login-container">
+        <h2 class="login-title">Đăng Nhập Ứng Dụng</h2>
+        <div class="form-group">
+            <label for="employeeSelect">Chọn tên của bạn (Nhân viên):</label>
+            <select id="employeeSelect">
                 </select>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary" onclick="login()">Đăng Nhập Thu Ngân</button>
+        </div>
+        
+        <div class="admin-login" style="margin-top: 30px;">
+            <h4 style="margin-bottom: 15px; color: #7f8c8d;">--- Quản trị viên ---</h4>
+            <div class="form-group">
+                <label for="adminPassword">Mật khẩu Admin:</label>
+                <input type="password" id="adminPassword" placeholder="Mật khẩu">
             </div>
-            <button class="btn btn-primary" onclick="login()" style="width: 100%;">Đăng nhập</button>
-            
-            <div class="admin-login">
-                <button class="btn btn-warning" onclick="showAdminLogin()" style="width: 100%;">Đăng nhập Admin</button>
-            </div>
+            <button class="btn btn-warning" onclick="adminLogin()">Đăng Nhập Admin</button>
         </div>
     </div>
 
-    <!-- Màn hình chính -->
-    <div id="mainScreen" class="container hidden">
+    <div id="appContainer" class="container hidden">
         <header>
-            <h1>SỔ THU CHI HÀNG NGÀY</h1>
             <div class="user-info">
-                <div id="userDisplay">Xin chào: <span id="currentUser"></span></div>
-                <div>
-                    <button class="btn btn-warning" onclick="showAdminPanel()" id="adminPanelBtn">Quản trị</button>
-                    <button class="btn btn-danger" onclick="logout()">Đăng xuất</button>
-                </div>
+                <span id="welcomeMessage"></span>
             </div>
+            <button class="btn btn-danger btn-sm" onclick="logout()">Đăng Xuất</button>
         </header>
 
-        <!-- Tab điều hướng -->
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('inputTab')">Nhập liệu</div>
-            <div class="tab" onclick="switchTab('viewTab')" id="viewTabBtn">Xem dữ liệu</div>
-            <div class="tab" onclick="switchTab('adminTab')" id="adminTabBtn">Quản trị</div>
+        <div id="syncStatus" style="text-align: center; padding: 10px; margin-bottom: 15px; border-radius: 6px; background-color: #95a5a6; color: white;">
+            Offline
+        </div>
+        
+        <div class="card" id="adminReportManagement" style="display:none;">
+            <h3 class="card-title" style="color: var(--danger-color); border-left: 5px solid var(--danger-color);">QUẢN LÝ BÁO CÁO</h3>
+            
+            <div class="card" id="adminEmployeeManagement" style="border-left: 5px solid #2980b9;">
+                <h3 class="card-title" style="color: #2980b9;">QUẢN LÝ NHÂN VIÊN THU NGÂN</h3>
+                <div class="form-group">
+                    <label for="newEmployeeName">Tên Thu ngân mới:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newEmployeeName" placeholder="Ví dụ: Nguyễn Văn X" style="flex: 1;">
+                        <button class="btn btn-primary btn-sm" onclick="addEmployee()" style="width: auto;">Thêm</button>
+                    </div>
+                </div>
+                <h4 style="margin-top: 15px; margin-bottom: 10px;">Danh sách hiện tại:</h4>
+                <div id="employeeListAdmin">
+                    </div>
+            </div>
+
+            <h3 class="card-title" style="margin-top: 20px;">XEM & CHỈNH SỬA BÁO CÁO</h3>
+            <div style="margin-bottom: 20px;">
+                <label for="dateSelectAdmin">Chọn ngày để xem/sửa:</label>
+                <div class="date-selector-container">
+                    <input type="date" id="dateSelectAdmin" onchange="loadDataToForm(true)">
+                    <button class="btn btn-primary" onclick="loadDataToForm(true)">Tải dữ liệu</button>
+                </div>
+            </div>
+
+            <h4 style="margin-bottom: 10px; color: var(--primary-color);">Danh sách ngày đã ghi chép</h4>
+            <div style="overflow-x: auto;">
+                <table id="adminReportTable" style="width:100%; min-width: 400px;">
+                    <thead>
+                        <tr style="background:#3498db; color:#fff;">
+                            <th style="width: 15%; padding: 8px;">Ngày</th>
+                            <th style="width: 20%; padding: 8px;">Nhân viên</th>
+                            <th style="width: 35%; padding: 8px;">Thời gian nhập cuối</th> 
+                            <th style="width: 30%; padding: 8px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminReportTableBody">
+                        </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:20px;">
+                <h4 style="margin-bottom: 10px;">Tải báo cáo Excel (Tổng hợp)</h4>
+                <div class="date-selector-container">
+                    <label>Từ ngày:</label>
+                    <input type="date" id="startDateAdmin">
+                    <label>Đến ngày:</label>
+                    <input type="date" id="endDateAdmin">
+                    <button class="btn btn-warning" onclick="exportReportsByDateRange()" id="exportBtn">Tải báo cáo Excel</button>
+                </div>
+            </div>
         </div>
 
-        <!-- Tab nhập liệu -->
-        <div id="inputTab" class="tab-content active">
-            <div class="date-selector">
-                <label for="selectedDate">Ngày:</label>
-                <input type="date" id="selectedDate">
-                <button class="btn btn-primary" onclick="loadDataForDate()">Tải dữ liệu</button>
+        <div id="dataEntryForm" class="hidden">
+            <div class="card">
+                <div class="date-selector-container" style="margin-bottom: 15px;">
+                    <label for="selectedDate">Ngày làm việc:</label>
+                    <input type="date" id="selectedDate" onchange="loadDataToForm(isAdmin)">
+                    <button class="btn btn-primary btn-sm" onclick="loadDataToForm(isAdmin)">Tải dữ liệu</button>
+                </div>
             </div>
 
             <div class="row">
-                <!-- Phần Thu -->
                 <div class="col">
                     <div class="card">
-                        <div class="card-title">PHẦN THU</div>
+                        <h3 class="card-title">I. PHẦN THU (DOANH THU & TIỀN MẶT)</h3>
                         <div class="form-group">
-                            <label for="revenue">Doanh thu:</label>
-                            <input type="text" id="revenue" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                            <label for="revenue">1. Doanh thu (Tổng tiền hàng):</label>
+                            <input type="text" id="revenue" value="0" oninput="formatAndCalculate(this)">
+                            <small class="note">Tổng giá trị hóa đơn đã bán trong ca.</small>
                         </div>
                         <div class="form-group">
-                            <label for="cash">Tiền mặt:</label>
-                            <input type="text" id="cash" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                            <label for="cash">2. Tiền mặt (Khách trả tiền mặt):</label>
+                            <input type="text" id="cash" value="0" oninput="formatAndCalculate(this)">
+                            <small class="note">Số tiền mặt thực tế nhận từ khách.</small>
                         </div>
                         <div class="form-group">
-                            <label for="transfer">Chuyển khoản:</label>
-                            <input type="text" id="transfer" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
-                        </div>
-                        <div class="form-group">
-                            <label for="totalIncome">Thành tiền:</label>
-                            <input type="text" id="totalIncome" readonly>
+                            <label for="transfer">3. Chuyển khoản (Khách chuyển khoản):</label>
+                            <input type="text" id="transfer" value="0" oninput="formatAndCalculate(this)">
+                            <small class="note">Tổng số tiền khách chuyển khoản trực tiếp vào tài khoản.</small>
                         </div>
                         
-                        <div class="card-title" style="margin-top: 20px;">APPS</div>
+                        <hr style="margin: 20px 0;">
+                        
+                        <h3 class="card-title" style="border-left: 5px solid var(--success-color); padding-left: 10px;">TỔNG THU</h3>
                         <div class="form-group">
-                            <label for="shoppeFood">Shoppe Food:</label>
-                            <input type="text" id="shoppeFood" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                            <label>TỔNG THU (Tiền mặt + Chuyển khoản):</label>
+                            <input type="text" id="totalIncome" value="0" readonly>
+                            <small class="note">Tiền mặt thực nhận + Tiền chuyển khoản thực nhận (chưa bao gồm Apps).</small>
+                        </div>
+
+                        <h3 class="card-title">II. APPS (Shoppe, Grab, Bee)</h3>
+                        <div class="form-group">
+                            <label for="shoppeFood">Shoppe Food (Tiền khách trả trên App):</label>
+                            <input type="text" id="shoppeFood" value="0" oninput="formatAndCalculate(this)">
                         </div>
                         <div class="form-group">
-                            <label for="grabFood">Grab Food:</label>
-                            <input type="text" id="grabFood" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                            <label for="grabFood">Grab Food (Tiền khách trả trên App):</label>
+                            <input type="text" id="grabFood" value="0" oninput="formatAndCalculate(this)">
                         </div>
                         <div class="form-group">
-                            <label for="beeFood">Bee Food:</label>
-                            <input type="text" id="beeFood" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                            <label for="beeFood">Bee Food (Tiền khách trả trên App):</label>
+                            <input type="text" id="beeFood" value="0" oninput="formatAndCalculate(this)">
                         </div>
                         <div class="form-group">
-                            <label for="totalApps">Tổng Apps:</label>
-                            <input type="text" id="totalApps" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="staffDiscount">Giảm giá nhân viên:</label>
-                            <input type="text" id="staffDiscount" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
+                            <label>TỔNG APPS:</label>
+                            <input type="text" id="totalApps" value="0" readonly>
+                            <small class="note">Tổng doanh thu từ tất cả các ứng dụng giao hàng.</small>
                         </div>
                     </div>
                 </div>
 
-                <!-- Phần Chi -->
                 <div class="col">
                     <div class="card">
-                        <div class="card-title">PHẦN CHI</div>
-                        <div id="expenseContainer">
-                            <!-- Các khoản chi sẽ được thêm động ở đây -->
-                        </div>
-                        <button class="btn btn-primary add-expense-btn" onclick="addExpenseField()">Thêm khoản chi</button>
+                        <h3 class="card-title">III. PHẦN CHI (TIỀN MẶT)</h3>
+                        <div id="expenseList">
+                            </div>
+                        <button class="btn btn-primary add-expense-btn" onclick="addExpenseItem()">➕ Thêm mục chi</button>
                         
-                        <div class="form-group" style="margin-top: 20px;">
-                            <label for="totalExpense">Tổng chi:</label>
-                            <input type="text" id="totalExpense" readonly>
+                        <hr style="margin: 20px 0;">
+                        
+                        <h3 class="card-title" style="border-left: 5px solid var(--danger-color); padding-left: 10px;">TỔNG CHI</h3>
+                        <div class="form-group">
+                            <label>TỔNG CHI (Tổng cộng các mục chi tiền mặt):</label>
+                            <input type="text" id="totalExpense" value="0" readonly>
+                            <small class="note">Tổng tiền mặt chi ra cho các hoạt động trong ca.</small>
                         </div>
                     </div>
-                </div>
 
-                <!-- Tổng kết -->
-                <div class="col">
                     <div class="card">
-                        <div class="card-title">TỔNG KẾT</div>
+                        <h3 class="card-title">IV. GIẢM GIÁ NHÂN VIÊN (15%)</h3>
                         <div class="form-group">
-                            <label for="openingCash">Đầu ca (mặc định):</label>
-                            <input type="text" id="openingCash" value="500.000" readonly>
+                            <label for="staffName">Tên Nhân viên:</label>
+                            <input type="text" id="staffName" placeholder="Tên nhân viên hưởng giảm giá">
+                            <small class="note">Nhập tên để ghi chú trong báo cáo.</small>
+                        </div>
+                        <div class="staff-discount-item">
+                            <div style="flex: 2;">
+                                <label for="staffBill">Giá trị Hóa đơn:</label>
+                                <input type="text" id="staffBill" value="0" oninput="calculateStaffDiscount(this)">
+                            </div>
+                            <div style="flex: 1;">
+                                <label>Giảm giá (15%):</label>
+                                <div class="discount-result" id="staffDiscountAmount">0</div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="totalAfterOpening">Tổng cộng sau đầu ca:</label>
-                            <input type="text" id="totalAfterOpening" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="otherIncome">Thu khác:</label>
-                            <input type="text" id="otherIncome" placeholder="0" onblur="formatCurrency(this)" onfocus="unformatCurrency(this)">
-                        </div>
-                        <div class="form-group">
-                            <label for="totalReceived">Tổng nhận:</label>
-                            <input type="text" id="totalReceived" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="totalIncomeFinal">Tổng thu nhập:</label>
-                            <input type="text" id="totalIncomeFinal" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="actualTotal">Tổng thực tế:</label>
-                            <input type="text" id="actualTotal" readonly>
+                            <label for="staffDiscount">Tổng Giảm giá (Giá trị trừ ra):</label>
+                            <input type="text" id="staffDiscount" value="0" readonly>
+                            <small class="note">Số tiền giảm trừ vào doanh thu (15% của hóa đơn). **Không tính vào Tổng kết cuối cùng.**</small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Nút hành động -->
+            <div class="card" style="border-left: 5px solid var(--warning-color);">
+                <h3 class="card-title">V. TỔNG KẾT & TIỀN MẶT THỰC NHẬN</h3>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Đầu ca (Tiền mặt cố định):</label>
+                            <input type="text" id="openingCash" value="500,000" readonly>
+                            <small class="note">Tiền mặt cố định được nhận vào đầu ca ($500.000).</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="otherIncome">Thu khác (Ngoài doanh thu, nếu có):</label>
+                            <input type="text" id="otherIncome" value="0" oninput="formatAndCalculate(this)">
+                            <small class="note">Các khoản thu ngoài doanh thu bán hàng (ví dụ: tiền cọc, thu hồi nợ).</small>
+                        </div>
+                        <div class="form-group">
+                            <label style="color: #2980b9;">TỔNG NHẬN TÀI KHOẢN (Chuyển khoản + Apps):</label>
+                            <input type="text" id="totalReceived" value="0" readonly style="color: #2980b9;">
+                            <small class="note">Tổng số tiền sẽ nhận được vào Tài khoản Ngân hàng (CK khách trả + Tổng Apps).</small>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label>TỔNG TIỀN MẶT HIỆN CÓ (Tiền mặt thu):</label>
+                            <input type="text" id="totalAfterOpening" value="0" readonly>
+                            <small class="note">**TIỀN MẶT THU** thực tế từ khách.</small>
+                        </div>
+                        <div class="form-group">
+                            <label style="color: #1e8449;">TIỀN MẶT CẦN CÓ (CUỐI CA):</label>
+                            <input type="text" id="actualTotal" value="0" readonly style="color: #1e8449;">
+                            <small class="note">Số tiền mặt còn lại sau khi trừ tiền đầu ca. Công thức: (Tiền mặt thu) - (Đầu ca).</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 30px; padding-top: 15px; border-top: 2px solid #ddd;">
+                    <label style="color: var(--danger-color); font-size: 18px;">TỔNG THU NHẬP:</label>
+                    <input type="text" id="totalIncomeFinalInput" value="0" readonly style="color: var(--danger-color); font-weight: bold; background-color: #fcebeb !important; border: 3px solid var(--danger-color) !important; font-size: 24px !important; height: 50px !important;">
+                    <small class="note" style="font-size: 14px; font-weight: bold;">Công thức: Tiền mặt + Chuyển khoản + Apps + Thu khác + Tổng Chi.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label style="color: var(--success-color); font-size: 18px; font-weight: bold;">TỔNG NHẬN SAU CÁC CHI PHÍ:</label>
+                    <input type="text" id="totalAfterExpensesInput" value="0" readonly style="color: var(--success-color); font-weight: bold; background-color: #eaf7ed !important; border: 3px solid var(--success-color) !important; font-size: 24px !important; height: 50px !important;">
+                    <small class="note" style="font-size: 14px; font-weight: bold;">Công thức: TỔNG THU NHẬP - Tổng Chi - Đầu ca.</small>
+                </div>
+                </div>
+
             <div class="action-buttons">
                 <button class="btn btn-success" onclick="saveAndExport()">Lưu và Xuất Ảnh</button>
-                <button class="btn btn-warning" onclick="exportToExcel()" id="exportBtn">Xuất Excel</button>
-            </div>
-
-            <!-- Khu vực hiển thị ảnh xuất -->
-            <div id="exportImageContainer" class="export-image-container hidden">
-                <h3>BÁO CÁO THU CHI NGÀY</h3>
-                <div id="reportContent">
-                    <!-- Nội dung báo cáo sẽ được thêm động -->
-                </div>
-                <img id="exportedImage" src="" alt="Báo cáo thu chi">
-                <div style="margin-top: 15px;">
-                    <button class="btn btn-primary" onclick="downloadImage()">Tải ảnh xuống</button>
-                    <button class="btn btn-danger" onclick="hideExportImage()">Đóng</button>
-                </div>
+                <button class="btn btn-danger" onclick="clearDataForDate()" id="clearDateBtn">Xóa dữ liệu ngày này</button>
             </div>
         </div>
 
-        <!-- Tab xem dữ liệu -->
-        <div id="viewTab" class="tab-content">
-            <div class="card">
-                <div class="card-title">DỮ LIỆU THEO NGÀY</div>
-                <div class="form-group">
-                    <label for="viewDate">Chọn ngày:</label>
-                    <input type="date" id="viewDate">
-                    <button class="btn btn-primary" onclick="loadViewData()">Xem dữ liệu</button>
+        <div id="exportImageContainer" class="export-image-container hidden" style="margin-top: 20px;">
+            <div id="reportContent" style="background: white; margin-bottom: 15px; overflow-x: auto;">
                 </div>
-                <div id="viewData">
-                    <!-- Dữ liệu sẽ được hiển thị ở đây -->
-                </div>
+            <img id="exportedImage" src="" alt="Báo cáo thu chi" style="max-width: 100%; height: auto; display: none;">
+            <div style="margin-top: 20px;" class="action-buttons">
+                <button class="btn btn-zalo" onclick="shareViaZalo()" id="zaloShareBtn">📤 Chia sẻ Báo cáo qua Zalo</button>
+                <button class="btn btn-primary" onclick="downloadImage()">Tải ảnh xuống</button>
+                <button class="btn btn-danger" onclick="hideExportImage()">Đóng</button>
             </div>
         </div>
 
-        <!-- Tab quản trị -->
-        <div id="adminTab" class="tab-content">
-            <div class="card">
-                <div class="card-title">QUẢN LÝ THU NGÂN</div>
-                <div class="user-management">
-                    <div class="form-group">
-                        <label for="newUserName">Tên thu ngân mới:</label>
-                        <input type="text" id="newUserName" placeholder="Nhập tên thu ngân">
-                    </div>
-                    <button class="btn btn-success" onclick="addUser()">Thêm thu ngân</button>
-                    
-                    <div class="user-list" id="userList">
-                        <!-- Danh sách thu ngân sẽ được hiển thị ở đây -->
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-title">LỊCH SỬ NHẬP LIỆU</div>
-                <div id="inputHistory">
-                    <!-- Lịch sử nhập liệu sẽ được hiển thị ở đây -->
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
-        // Firebase configuration
+        // Cấu hình Firebase CỦA BẠN ĐÃ CẬP NHẬT
         const firebaseConfig = {
-          apiKey: "AIzaSyBI6gADn7OPIJbK3x4tu69Zh5eRLoXO_zs",
-          authDomain: "minhtan-d6ecd.firebaseapp.com",
-          projectId: "minhtan-d6ecd",
-          storageBucket: "minhtan-d6ecd.firebasestorage.app",
-          messagingSenderId: "490270665555",
-          appId: "1:490270665555:web:7df829b497cf0985448fa6",
-          measurementId: "G-6VXZT1ZER6"
+             apiKey: "AIzaSyBI6gADn7OPIJbK3x4tu69Zh5eRLoXO_zs",
+             authDomain: "minhtan-d6ecd.firebaseapp.com",
+             projectId: "minhtan-d6ecd",
+             storageBucket: "minhtan-d6ecd.firebasestorage.app",
+             messagingSenderId: "490270665555",
+             appId: "1:490270665555:web:7df829b497cf0985448fa6",
         };
+        
+        // Mật khẩu Admin KHÔNG NÊN LƯU TRONG CLIENT-SIDE. Dùng tạm để test.
+        const ADMIN_PASSWORD = 'thaithae2025@';
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
+        // Khởi tạo Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        // Biến toàn cục
-        let currentUser = null;
+        
+        let currentUser = '';
         let isAdmin = false;
-        const adminPassword = "thaithae2025@";
         let expenseCount = 0;
-        let allData = {};
-        let isOnline = true;
+        const OPENING_CASH = 500000; // 500.000 VNĐ
+        let employees = []; // Danh sách nhân viên sẽ được tải từ Firebase
 
-        // Theo dõi trạng thái kết nối
-        firebase.firestore().enablePersistence()
-            .catch((err) => {
-                console.log('Firebase persistence error: ', err);
-            });
+        // --- HÀM TIỆN ÍCH ---
 
-        // Lắng nghe trạng thái kết nối
-        firebase.firestore().onSnapshotsInSync(() => {
-            updateSyncStatus(true);
-        });
-
-        // Khởi tạo ứng dụng
-        async function initApp() {
-            // Khởi tạo ngày hiện tại
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('selectedDate').value = today;
-            document.getElementById('viewDate').value = today;
-            
-            // Tải dữ liệu từ Firebase
-            await loadAllData();
-            
-            // Tải danh sách thu ngân
-            await loadCashierList();
-            
-            // Thêm 20 khoản chi mặc định
-            for (let i = 0; i < 20; i++) {
-                addExpenseField();
-            }
-            
-            // Ẩn các tab không cần thiết
-            document.getElementById('viewTabBtn').classList.add('hidden');
-            document.getElementById('adminTabBtn').classList.add('hidden');
-            document.getElementById('exportBtn').classList.add('hidden');
-        }
-        
-        // Cập nhật trạng thái đồng bộ
-        function updateSyncStatus(online) {
-            isOnline = online;
-            const syncStatus = document.getElementById('syncStatus');
-            const syncText = document.getElementById('syncText');
-            const syncLoader = document.getElementById('syncLoader');
-            
-            syncStatus.classList.remove('hidden');
-            
-            if (online) {
-                syncStatus.className = 'sync-status sync-online';
-                syncText.textContent = 'Đã kết nối';
-                syncLoader.classList.add('hidden');
-            } else {
-                syncStatus.className = 'sync-status sync-offline';
-                syncText.textContent = 'Đang đồng bộ...';
-                syncLoader.classList.remove('hidden');
-            }
-        }
-        
-        // Tải danh sách thu ngân từ Firebase
-        async function loadCashierList() {
-            try {
-                const cashierSelect = document.getElementById('cashierName');
-                cashierSelect.innerHTML = '<option value="">-- Chọn thu ngân --</option>';
-                
-                const usersSnapshot = await db.collection('users').get();
-                
-                usersSnapshot.forEach(doc => {
-                    const userData = doc.data();
-                    if (userData.role !== 'admin') {
-                        const option = document.createElement('option');
-                        option.value = doc.id;
-                        option.textContent = doc.id;
-                        cashierSelect.appendChild(option);
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading cashiers:', error);
-                alert('Lỗi khi tải danh sách thu ngân');
-            }
-        }
-        
-        // Đăng nhập
-        async function login() {
-            const cashierName = document.getElementById('cashierName').value;
-            
-            if (!cashierName) {
-                alert('Vui lòng chọn tên thu ngân!');
-                return;
-            }
-            
-            try {
-                // Kiểm tra xem thu ngân có tồn tại không
-                const userDoc = await db.collection('users').doc(cashierName).get();
-                
-                if (!userDoc.exists) {
-                    alert('Thu ngân không tồn tại!');
-                    return;
-                }
-                
-                currentUser = cashierName;
-                isAdmin = false;
-                
-                // Hiển thị màn hình chính
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('mainScreen').classList.remove('hidden');
-                document.getElementById('currentUser').textContent = currentUser;
-                
-                // Ẩn các tab không cần thiết cho thu ngân
-                document.getElementById('viewTabBtn').classList.add('hidden');
-                document.getElementById('adminTabBtn').classList.add('hidden');
-                document.getElementById('exportBtn').classList.add('hidden');
-                
-                // Khóa chỉnh sửa ngày cho thu ngân
-                document.getElementById('selectedDate').disabled = true;
-                
-                // Tính toán tự động
-                calculateTotals();
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                alert('Lỗi khi đăng nhập');
-            }
-        }
-        
-        // Hiển thị đăng nhập admin
-        async function showAdminLogin() {
-            const password = prompt('Nhập mật khẩu Admin:');
-            
-            if (password === adminPassword) {
-                try {
-                    // Kiểm tra admin trong Firebase
-                    const adminDoc = await db.collection('users').doc('admin').get();
-                    
-                    if (!adminDoc.exists) {
-                        // Tạo tài khoản admin nếu chưa có
-                        await db.collection('users').doc('admin').set({
-                            role: 'admin',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-                    
-                    currentUser = 'admin';
-                    isAdmin = true;
-                    
-                    // Hiển thị màn hình chính
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('mainScreen').classList.remove('hidden');
-                    document.getElementById('currentUser').textContent = 'Quản trị viên';
-                    
-                    // Hiển thị tất cả các tab
-                    document.getElementById('viewTabBtn').classList.remove('hidden');
-                    document.getElementById('adminTabBtn').classList.remove('hidden');
-                    document.getElementById('exportBtn').classList.remove('hidden');
-                    
-                    // Cho phép chỉnh sửa ngày
-                    document.getElementById('selectedDate').disabled = false;
-                    
-                    // Tải dữ liệu người dùng
-                    await loadUserList();
-                    await loadInputHistory();
-                    
-                    // Tính toán tự động
-                    calculateTotals();
-                    
-                } catch (error) {
-                    console.error('Admin login error:', error);
-                    alert('Lỗi khi đăng nhập admin');
-                }
-            } else if (password !== null) {
-                alert('Mật khẩu Admin không đúng!');
-            }
-        }
-        
-        // Hiển thị panel admin
-        function showAdminPanel() {
-            if (isAdmin) {
-                switchTab('adminTab');
-            } else {
-                showAdminLogin();
-            }
-        }
-        
-        // Đăng xuất
-        function logout() {
-            currentUser = null;
-            isAdmin = false;
-            
-            // Hiển thị màn hình đăng nhập
-            document.getElementById('mainScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-        }
-        
-        // Chuyển tab
-        async function switchTab(tabName) {
-            // Ẩn tất cả các tab
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Bỏ active tất cả các tab
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Hiển thị tab được chọn
-            document.getElementById(tabName).classList.add('active');
-            
-            // Đánh dấu tab active
-            event.target.classList.add('active');
-            
-            // Nếu là tab admin và là admin, tải dữ liệu
-            if (tabName === 'adminTab' && isAdmin) {
-                await loadUserList();
-                await loadInputHistory();
-            }
-        }
-        
-        // Thêm khoản chi
-        function addExpenseField() {
-            expenseCount++;
-            const expenseContainer = document.getElementById('expenseContainer');
-            
-            const expenseItem = document.createElement('div');
-            expenseItem.className = 'expense-item';
-            expenseItem.id = `expense-${expenseCount}`;
-            
-            expenseItem.innerHTML = `
-                <input type="text" placeholder="Nội dung" id="expenseContent-${expenseCount}">
-                <input type="text" placeholder="0" id="expenseValue-${expenseCount}" 
-                       onblur="formatCurrency(this)" onfocus="unformatCurrency(this)" 
-                       style="width: 150px;" oninput="calculateTotals()">
-                <button class="btn btn-danger" onclick="removeExpenseField(${expenseCount})">X</button>
-            `;
-            
-            expenseContainer.appendChild(expenseItem);
-        }
-        
-        // Xóa khoản chi
-        function removeExpenseField(id) {
-            const expenseItem = document.getElementById(`expense-${id}`);
-            if (expenseItem) {
-                expenseItem.remove();
-                calculateTotals();
-            }
-        }
-        
-        // Định dạng tiền tệ
-        function formatCurrency(input) {
-            let value = input.value.replace(/\./g, '');
-            if (!isNaN(value) && value !== '') {
-                input.value = parseInt(value).toLocaleString('vi-VN');
-            }
-        }
-        
-        // Bỏ định dạng tiền tệ
-        function unformatCurrency(input) {
-            input.value = input.value.replace(/\./g, '');
-        }
-        
-        // Chuyển đổi chuỗi tiền tệ thành số
         function parseCurrency(value) {
             if (!value) return 0;
-            return parseInt(value.replace(/\./g, '')) || 0;
+            return parseFloat(value.toString().replace(/[^0-9-]/g, '')) || 0;
+        }
+
+        function formatNumber(number) {
+            if (typeof number !== 'number' || isNaN(number)) return '0';
+            return number.toLocaleString('en-US');
         }
         
-        // Tính toán tổng
+        const getDayOfWeek = (dateString) => {
+            const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            // Cần parse đúng định dạng YYYY-MM-DD và dùng UTC để tránh lệch múi giờ
+            const date = new Date(dateString + 'T00:00:00Z');
+            return days[date.getUTCDay()]; 
+        };
+
+        function formatAndCalculate(input) {
+            const num = parseCurrency(input.value);
+            input.value = formatNumber(num);
+            calculateTotals();
+        }
+
+        function calculateStaffDiscount(input) {
+            const billInput = document.getElementById('staffBill');
+            const billValue = parseCurrency(billInput.value);
+            
+            const discountRate = 0.15;
+            const discountAmount = Math.round(billValue * discountRate);
+            
+            document.getElementById('staffDiscountAmount').textContent = formatNumber(discountAmount);
+            document.getElementById('staffDiscount').value = formatNumber(discountAmount);
+
+            billInput.value = formatNumber(billValue);
+            
+            calculateTotals();
+        }
+
+        // --- HÀM TÍNH TOÁN CHÍNH (CẬP NHẬT CÔNG THỨC THEO YÊU CẦU) ---
+
         function calculateTotals() {
-            // Thu nhập
+            // Lấy input
             const revenue = parseCurrency(document.getElementById('revenue').value);
             const cash = parseCurrency(document.getElementById('cash').value);
             const transfer = parseCurrency(document.getElementById('transfer').value);
-            const totalIncome = revenue + cash + transfer;
-            document.getElementById('totalIncome').value = totalIncome.toLocaleString('vi-VN');
+            const otherIncome = parseCurrency(document.getElementById('otherIncome').value);
             
-            // Apps
+            const totalIncome = cash + transfer;
+            document.getElementById('totalIncome').value = formatNumber(totalIncome);
+
+            // 2. Apps
             const shoppeFood = parseCurrency(document.getElementById('shoppeFood').value);
             const grabFood = parseCurrency(document.getElementById('grabFood').value);
             const beeFood = parseCurrency(document.getElementById('beeFood').value);
             const totalApps = shoppeFood + grabFood + beeFood;
-            document.getElementById('totalApps').value = totalApps.toLocaleString('vi-VN');
-            
-            // Chi phí
+            document.getElementById('totalApps').value = formatNumber(totalApps);
+
+            // 3. Chi
             let totalExpense = 0;
             for (let i = 1; i <= expenseCount; i++) {
-                const expenseValue = document.getElementById(`expenseValue-${i}`);
-                if (expenseValue) {
-                    totalExpense += parseCurrency(expenseValue.value);
+                const valueElement = document.getElementById(`expenseValue-${i}`);
+                if (valueElement) {
+                    totalExpense += parseCurrency(valueElement.value);
                 }
             }
-            document.getElementById('totalExpense').value = totalExpense.toLocaleString('vi-VN');
+            document.getElementById('totalExpense').value = formatNumber(totalExpense);
+
+            // 4. Giảm giá nhân viên (CHỈ GHI NHẬN, KHÔNG TÍNH VÀO TỔNG KẾT)
+            const staffDiscount = parseCurrency(document.getElementById('staffDiscount').value);
+
+            // KẾT QUẢ CUỐI CÙNG
+            const totalReceived = transfer + totalApps;
+            document.getElementById('totalReceived').value = formatNumber(totalReceived);
             
-            // Tổng kết
-            const openingCash = 500000; // Đầu ca mặc định
-            const totalAfterOpening = cash + transfer - openingCash;
-            document.getElementById('totalAfterOpening').value = totalAfterOpening.toLocaleString('vi-VN');
+            // 1. TỔNG THU NHẬP (Công thức: Tiền mặt + Chuyển khoản + Apps + Thu khác + Tổng Chi)
+            const totalIncomeFinal = totalIncome + totalApps + otherIncome + totalExpense; 
+            document.getElementById('totalIncomeFinalInput').value = formatNumber(totalIncomeFinal);
+
+            // 2. TỔNG NHẬN SAU CÁC CHI PHÍ (Công thức mới: TỔNG THU NHẬP - Tổng Chi - Đầu ca)
+            const totalAfterExpenses = totalIncomeFinal - totalExpense - OPENING_CASH;
+            document.getElementById('totalAfterExpensesInput').value = formatNumber(totalAfterExpenses);
             
-            const otherIncome = parseCurrency(document.getElementById('otherIncome').value);
-            const totalReceived = totalAfterOpening + otherIncome + totalApps;
-            document.getElementById('totalReceived').value = totalReceived.toLocaleString('vi-VN');
+            /* --- CẬP NHẬT CÔNG THỨC TÍNH TIỀN MẶT THEO YÊU CẦU MỚI --- */
             
-            const totalIncomeFinal = totalReceived - totalExpense;
-            document.getElementById('totalIncomeFinal').value = totalIncomeFinal.toLocaleString('vi-VN');
+            // TỔNG TIỀN MẶT HIỆN CÓ: Chỉ lấy Tiền mặt thu (cash)
+            const totalAfterOpening = cash; 
+            document.getElementById('totalAfterOpening').value = formatNumber(totalAfterOpening);
+
+            // TIỀN MẶT CẦN CÓ (CUỐI CA): Tiền mặt hiện có (mới) - Đầu ca
+            const actualTotal = totalAfterOpening - OPENING_CASH;
+            document.getElementById('actualTotal').value = formatNumber(actualTotal);
+        }
+
+        // --- QUẢN LÝ FORM CHI ---
+
+        function addExpenseItem(content = '', value = 0, isInitial = false) {
+            expenseCount++;
+            const expenseList = document.getElementById('expenseList');
             
-            const actualTotal = transfer + cash + totalApps + totalExpense;
-            document.getElementById('actualTotal').value = actualTotal.toLocaleString('vi-VN');
+            const div = document.createElement('div');
+            div.className = 'expense-item';
+            div.id = `expenseItem-${expenseCount}`;
+            
+            // Cho phép thêm / xóa mục chi linh hoạt
+            const deleteButtonHtml = `<button class="btn btn-danger btn-sm" onclick="removeExpenseItem(${expenseCount})">X</button>`;
+            
+            div.innerHTML = `
+                <input type="text" id="expenseContent-${expenseCount}" placeholder="Nội dung chi (vd: Mua nguyên liệu)" value="${content}">
+                <input type="text" id="expenseValue-${expenseCount}" value="${formatNumber(value)}" oninput="formatAndCalculate(this)">
+                ${deleteButtonHtml}
+            `;
+            
+            expenseList.appendChild(div);
+            // Re-attach event listener for new input
+            document.getElementById(`expenseValue-${expenseCount}`).addEventListener('input', () => formatAndCalculate(document.getElementById(`expenseValue-${expenseCount}`)));
+            
+            // Chỉ tính toán khi không phải đang khởi tạo 5 mục rỗng
+            if(!isInitial) {
+                 calculateTotals();
+            }
+        }
+
+        function removeExpenseItem(id) {
+            const item = document.getElementById(`expenseItem-${id}`);
+            if (item) {
+                item.remove();
+                calculateTotals();
+            }
         }
         
-        // Lưu dữ liệu lên Firebase
-        async function saveData() {
-            const date = document.getElementById('selectedDate').value;
-            if (!date) {
-                alert('Vui lòng chọn ngày!');
+        function initExpenseItems() {
+            const expenseList = document.getElementById('expenseList');
+            expenseList.innerHTML = '';
+            expenseCount = 0;
+            // Khởi tạo 5 mục chi rỗng ban đầu, có nút X
+            for (let i = 0; i < 5; i++) {
+                addExpenseItem('', 0, false);
+            }
+        }
+        
+        // --- QUẢN LÝ NHÂN VIÊN (MỚI) ---
+        
+        async function loadEmployees() {
+            try {
+                const doc = await db.collection('config').doc('employees').get();
+                if (doc.exists) {
+                    employees = doc.data().list || [];
+                } else {
+                    // Mặc định ban đầu nếu chưa có data
+                    employees = ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C'];
+                    await saveEmployees(); // Lưu lại list mặc định
+                }
+                populateEmployeeSelect();
+                if (isAdmin) {
+                    populateAdminEmployeeList();
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách nhân viên:", error);
+                // Dùng danh sách tạm nếu lỗi
+                employees = ['Nguyễn Văn A (Lỗi tải)', 'Trần Thị B (Lỗi tải)'];
+                populateEmployeeSelect();
+            }
+        }
+        
+        async function saveEmployees() {
+            try {
+                // Lọc bỏ mục rỗng/trùng lặp và sắp xếp
+                const uniqueEmployees = Array.from(new Set(employees.filter(n => n.trim() !== '')));
+                employees = uniqueEmployees.sort();
+                await db.collection('config').doc('employees').set({ list: employees });
+                populateEmployeeSelect();
+                if (isAdmin) {
+                    populateAdminEmployeeList();
+                }
+                return true;
+            } catch (error) {
+                alert('Lỗi khi lưu danh sách nhân viên: ' + error.message);
                 return false;
             }
-            
-            try {
-                updateSyncStatus(false);
-                
-                // Thu thập dữ liệu
-                const data = {
-                    date: date,
-                    user: currentUser,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    revenue: parseCurrency(document.getElementById('revenue').value),
-                    cash: parseCurrency(document.getElementById('cash').value),
-                    transfer: parseCurrency(document.getElementById('transfer').value),
-                    shoppeFood: parseCurrency(document.getElementById('shoppeFood').value),
-                    grabFood: parseCurrency(document.getElementById('grabFood').value),
-                    beeFood: parseCurrency(document.getElementById('beeFood').value),
-                    staffDiscount: parseCurrency(document.getElementById('staffDiscount').value),
-                    otherIncome: parseCurrency(document.getElementById('otherIncome').value),
-                    expenses: []
-                };
-                
-                // Thu thập chi phí
-                for (let i = 1; i <= expenseCount; i++) {
-                    const content = document.getElementById(`expenseContent-${i}`);
-                    const value = document.getElementById(`expenseValue-${i}`);
-                    
-                    if (content && value && content.value && value.value) {
-                        data.expenses.push({
-                            content: content.value,
-                            value: parseCurrency(value.value)
+        }
+        
+        function populateEmployeeSelect() {
+            const select = document.getElementById('employeeSelect');
+            select.innerHTML = '<option value="" disabled selected>Chọn tên nhân viên...</option>';
+            employees.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+        
+        function populateAdminEmployeeList() {
+            const listContainer = document.getElementById('employeeListAdmin');
+            listContainer.innerHTML = '';
+            employees.forEach(name => {
+                const div = document.createElement('div');
+                div.className = 'employee-row';
+                div.innerHTML = `
+                    <span>${name}</span>
+                    <button class="btn btn-danger btn-sm" onclick="removeEmployee('${name}')">Xóa</button>
+                `;
+                listContainer.appendChild(div);
+            });
+        }
+        
+        function addEmployee() {
+            const nameInput = document.getElementById('newEmployeeName');
+            const name = nameInput.value.trim();
+            if (name && !employees.includes(name)) {
+                employees.push(name);
+                saveEmployees();
+                nameInput.value = '';
+            } else if (employees.includes(name)) {
+                alert('Nhân viên này đã có trong danh sách.');
+            } else {
+                alert('Vui lòng nhập tên.');
+            }
+        }
+        
+        function removeEmployee(name) {
+            if (confirm(`Bạn có chắc muốn xóa nhân viên ${name} khỏi danh sách?`)) {
+                employees = employees.filter(n => n !== name);
+                saveEmployees();
+            }
+        }
+
+        // --- XỬ LÝ DỮ LIỆU FIREBASE (saveData, loadDataToForm, loadAdminReportList, deleteReport) ---
+        
+        function saveData() {
+            const date = document.getElementById('selectedDate').value;
+            if (!date) {
+                alert('Vui lòng chọn ngày.');
+                return;
+            }
+
+            const expenses = [];
+            for (let i = 1; i <= expenseCount; i++) {
+                const content = document.getElementById(`expenseContent-${i}`);
+                const value = document.getElementById(`expenseValue-${i}`);
+                if (content && value) {
+                    const numValue = parseCurrency(value.value);
+                    if (content.value.trim() || numValue > 0) {
+                        expenses.push({
+                            content: content.value.trim() || `Mục chi #${i}`,
+                            value: numValue
                         });
                     }
                 }
+            }
+
+            const staffDiscountData = {
+                name: document.getElementById('staffName').value,
+                bill: parseCurrency(document.getElementById('staffBill').value),
+                discount: parseCurrency(document.getElementById('staffDiscount').value)
+            };
+            
+            const data = {
+                date: date,
+                user: currentUser,
+                revenue: parseCurrency(document.getElementById('revenue').value),
+                cash: parseCurrency(document.getElementById('cash').value),
+                transfer: parseCurrency(document.getElementById('transfer').value),
+                shoppeFood: parseCurrency(document.getElementById('shoppeFood').value),
+                grabFood: parseCurrency(document.getElementById('grabFood').value),
+                beeFood: parseCurrency(document.getElementById('beeFood').value),
+                otherIncome: parseCurrency(document.getElementById('otherIncome').value),
+                staffDiscount: staffDiscountData,
+                expenses: expenses,
+                // Lưu các giá trị đã tính toán:
+                totalIncome: parseCurrency(document.getElementById('totalIncome').value),
+                totalExpense: parseCurrency(document.getElementById('totalExpense').value),
+                totalApps: parseCurrency(document.getElementById('totalApps').value),
+                totalIncomeFinal: parseCurrency(document.getElementById('totalIncomeFinalInput').value),
+                totalAfterExpenses: parseCurrency(document.getElementById('totalAfterExpensesInput').value), // <--- ADDED totalAfterExpenses
+                actualTotal: parseCurrency(document.getElementById('actualTotal').value),
+                totalReceived: parseCurrency(document.getElementById('totalReceived').value), 
+                timestamp: new Date().toISOString() 
+            };
+
+            db.collection('dailyReports').doc(date).set(data)
+                .then(() => {
+                    document.getElementById('syncStatus').textContent = 'Đã lưu thành công! ✅';
+                    document.getElementById('syncStatus').style.backgroundColor = '#2ecc71';
+                    if (isAdmin) {
+                        loadAdminReportList(); 
+                        document.getElementById('dateSelectAdmin').value = date; 
+                    }
+                })
+                .catch(error => {
+                    alert('Lỗi khi lưu dữ liệu: ' + error.message);
+                    console.error('Error saving document: ', error);
+                });
+        }
+
+        function loadDataToForm(isFromAdmin) {
+            const dateInputId = isFromAdmin ? 'dateSelectAdmin' : 'selectedDate';
+            const formDateInput = document.getElementById('selectedDate');
+            let date = document.getElementById(dateInputId).value;
+
+            if (isFromAdmin) {
+                formDateInput.value = date; 
+            } else {
+                date = formDateInput.value;
+            }
+
+            if (!date) return;
+
+            document.getElementById('dataEntryForm').classList.remove('hidden'); 
+
+            document.getElementById('syncStatus').textContent = 'Đang tải... ⏳';
+            document.getElementById('syncStatus').style.backgroundColor = '#f39c12';
+            document.getElementById('clearDateBtn').classList.add('hidden'); 
+
+            db.collection('dailyReports').doc(date).get()
+                .then(doc => {
+                    resetForm(false); 
+
+                    if (doc.exists) {
+                        const data = doc.data();
+                        
+                        if (isFromAdmin) {
+                            document.getElementById('clearDateBtn').classList.remove('hidden');
+                        }
+
+                        // Điền dữ liệu
+                        document.getElementById('revenue').value = formatNumber(data.revenue || 0);
+                        document.getElementById('cash').value = formatNumber(data.cash || 0);
+                        document.getElementById('transfer').value = formatNumber(data.transfer || 0);
+                        document.getElementById('shoppeFood').value = formatNumber(data.shoppeFood || 0);
+                        document.getElementById('grabFood').value = formatNumber(data.grabFood || 0);
+                        document.getElementById('beeFood').value = formatNumber(data.beeFood || 0);
+                        document.getElementById('otherIncome').value = formatNumber(data.otherIncome || 0);
+                        
+                        if (data.staffDiscount) {
+                            document.getElementById('staffName').value = data.staffDiscount.name || '';
+                            document.getElementById('staffBill').value = formatNumber(data.staffDiscount.bill || 0);
+                            document.getElementById('staffDiscount').value = formatNumber(data.staffDiscount.discount || 0);
+                            document.getElementById('staffDiscountAmount').textContent = formatNumber(data.staffDiscount.discount || 0);
+                        }
+
+                        const expenseList = document.getElementById('expenseList');
+                        expenseList.innerHTML = ''; 
+                        expenseCount = 0;
+                        if (data.expenses && data.expenses.length > 0) {
+                            data.expenses.forEach(item => {
+                                addExpenseItem(item.content, item.value, false); 
+                            });
+                        } else {
+                            initExpenseItems();
+                        }
+
+                        document.getElementById('syncStatus').textContent = `Đã tải dữ liệu thành công! (Cập nhật cuối bởi ${data.user})`;
+                        document.getElementById('syncStatus').style.backgroundColor = '#2ecc71';
+                        
+                        calculateTotals();
+                    } else {
+                        // Ngày chưa có dữ liệu
+                        resetForm(true);
+                        document.getElementById('syncStatus').textContent = 'Chưa có dữ liệu cho ngày này. Form đã được làm mới.';
+                        document.getElementById('syncStatus').style.backgroundColor = '#3498db';
+                    }
+                })
+                .catch(error => {
+                    alert('Lỗi khi tải dữ liệu: ' + error.message);
+                    console.error('Error loading document: ', error);
+                    document.getElementById('syncStatus').textContent = 'Lỗi kết nối Firebase ❌';
+                    document.getElementById('syncStatus').style.backgroundColor = '#e74c3c';
+                });
+        }
+        
+        function loadAdminReportList() {
+            if (!isAdmin) return;
+            const tbody = document.getElementById('adminReportTableBody');
+            tbody.innerHTML = '<tr><td colspan="4">Đang tải...</td></tr>';
+            db.collection('dailyReports').orderBy('date', 'desc').get()
+                .then(snapshot => {
+                    tbody.innerHTML = '';
+                    if (snapshot.empty) {
+                        tbody.innerHTML = '<tr><td colspan="4">Không có dữ liệu ghi chép nào.</td></tr>';
+                        return;
+                    }
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const timestamp = data.timestamp ? new Date(data.timestamp).toLocaleString('vi-VN') : 'Không rõ';
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${data.date}</td>
+                            <td>${data.user}</td>
+                            <td>${timestamp}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="viewReportAsAdmin('${data.date}')">Sửa</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteReport('${data.date}')">Xóa</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+        
+        function viewReportAsAdmin(date) {
+            document.getElementById('dateSelectAdmin').value = date;
+            loadDataToForm(true); 
+            document.getElementById('dataEntryForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteReport(date) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa TOÀN BỘ ghi chép của ngày ${date} không?`)) return;
+            db.collection('dailyReports').doc(date).delete()
+                .then(() => {
+                    loadAdminReportList();
+                    alert('Đã xóa ghi chép thành công.');
+                    if (document.getElementById('selectedDate').value === date) {
+                        document.getElementById('dataEntryForm').classList.add('hidden');
+                        document.getElementById('syncStatus').textContent = 'Dữ liệu đã bị xóa. Vui lòng chọn ngày khác.';
+                        document.getElementById('syncStatus').style.backgroundColor = '#e74c3c';
+                    }
+                })
+                .catch(error => {
+                    alert('Lỗi khi xóa: ' + error.message);
+                });
+        }
+        
+        function clearDataForDate() {
+            const date = document.getElementById('selectedDate').value;
+            if (!date) {
+                alert('Vui lòng chọn ngày để xóa.');
+                return;
+            }
+            deleteReport(date);
+        }
+
+        // --- XỬ LÝ LOGIN / LOGOUT ---
+        
+        function login() {
+            const employeeSelect = document.getElementById('employeeSelect');
+            currentUser = employeeSelect.value;
+            
+            if (currentUser) {
+                isAdmin = false;
+                document.getElementById('loginBlock').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                document.getElementById('welcomeMessage').textContent = `Xin chào, Thu ngân ${currentUser}`;
                 
-                // Lưu lên Firebase
-                const docId = `${date}_${currentUser}`;
-                await db.collection('dailyExpenses').doc(docId).set(data);
+                // Cấu hình giao diện Thu ngân
+                document.getElementById('adminReportManagement').style.display = 'none';
+                document.getElementById('dataEntryForm').classList.remove('hidden');
+                document.getElementById('clearDateBtn').classList.add('hidden'); 
+
+                // Thu ngân chỉ được nhập ngày hiện tại
+                const today = new Date().toISOString().split('T')[0];
+                const dateInput = document.getElementById('selectedDate');
+                dateInput.value = today;
+                dateInput.readOnly = true; 
+
+                loadDataToForm(false); 
+            } else {
+                alert('Vui lòng chọn tên của bạn để đăng nhập.');
+            }
+        }
+
+        function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) { 
+                currentUser = 'ADMIN';
+                isAdmin = true;
+                document.getElementById('loginBlock').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                document.getElementById('welcomeMessage').textContent = `Chào mừng, Quản trị viên`;
                 
-                // Cập nhật dữ liệu cục bộ
-                if (!allData[date]) {
-                    allData[date] = [];
-                }
+                // Cấu hình giao diện Admin
+                document.getElementById('adminReportManagement').style.display = 'block';
+                document.getElementById('dataEntryForm').classList.add('hidden'); 
+                document.getElementById('clearDateBtn').classList.remove('hidden');
                 
-                const existingIndex = allData[date].findIndex(item => item.user === currentUser);
-                if (existingIndex !== -1) {
-                    allData[date][existingIndex] = data;
-                } else {
-                    allData[date].push(data);
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('Save error:', error);
-                alert('Lỗi khi lưu dữ liệu: ' + error.message);
-                return false;
+                const today = new Date().toISOString().split('T')[0];
+                const dateInput = document.getElementById('selectedDate');
+                dateInput.readOnly = false; 
+                dateInput.value = today;
+                document.getElementById('dateSelectAdmin').value = today;
+
+
+                loadAdminReportList();
+                populateAdminEmployeeList(); // Hiển thị danh sách NV Admin
+            } else {
+                alert('Mật khẩu Quản trị viên không chính xác.');
             }
         }
         
-        // Lưu và xuất ảnh
-        async function saveAndExport() {
-            if (await saveData()) {
-                generateReportImage();
-            }
+        function logout() {
+            window.location.reload();
         }
-        
-        // Tạo ảnh báo cáo
+
+        // --- HÀM XUẤT ẢNH / ZALO SHARE (Đã cập nhật) ---
+
         function generateReportImage() {
             const date = document.getElementById('selectedDate').value;
             const reportContent = document.getElementById('reportContent');
             
-            // Tạo nội dung báo cáo
-            let html = `
-                <div style="padding: 20px; background: white; max-width: 800px; margin: 0 auto;">
-                    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">BÁO CÁO THU CHI</h2>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                        <div><strong>Ngày:</strong> ${date}</div>
-                        <div><strong>Thu ngân:</strong> ${currentUser}</div>
-                    </div>
-                    
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                        <tr style="background-color: #f8f9fa;">
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">KHOẢN MỤC</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">SỐ TIỀN</th>
-                        </tr>
-            `;
-            
-            // Thêm phần thu
-            html += `
-                <tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">PHẦN THU</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Doanh thu</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('revenue').value}</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Tiền mặt</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('cash').value}</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Chuyển khoản</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('transfer').value}</td></tr>
-                <tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Thành tiền</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalIncome').value}</td></tr>
-                
-                <tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">APPS</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Shoppe Food</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('shoppeFood').value}</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Grab Food</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('grabFood').value}</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Bee Food</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('beeFood').value}</td></tr>
-                <tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng Apps</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalApps').value}</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Giảm giá nhân viên</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('staffDiscount').value}</td></tr>
-            `;
-            
-            // Thêm phần chi
-            html += `<tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">PHẦN CHI</td></tr>`;
-            
+            const expenses = [];
             for (let i = 1; i <= expenseCount; i++) {
-                const content = document.getElementById(`expenseContent-${i}`);
-                const value = document.getElementById(`expenseValue-${i}`);
-                
-                if (content && value && content.value && value.value) {
-                    html += `<tr><td style="padding: 8px; border: 1px solid #ddd;">${content.value}</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${value.value}</td></tr>`;
+                const contentEl = document.getElementById(`expenseContent-${i}`);
+                const valueEl = document.getElementById(`expenseValue-${i}`);
+                if (contentEl && valueEl) {
+                    const numValue = parseCurrency(valueEl.value);
+                    if (contentEl.value.trim() || numValue > 0) {
+                        expenses.push({
+                            content: contentEl.value.trim() || `Mục chi #${i}`,
+                            formattedValue: valueEl.value
+                        });
+                    }
                 }
             }
             
-            html += `<tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng chi</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalExpense').value}</td></tr>`;
-            
-            // Thêm tổng kết
-            html += `
-                <tr><td colspan="2" style="padding: 10px; background-color: #e8f4fd; font-weight: bold;">TỔNG KẾT</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Đầu ca (mặc định)</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">500.000</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Tổng cộng sau đầu ca</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalAfterOpening').value}</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Thu khác</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('otherIncome').value}</td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd;">Tổng nhận</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalReceived').value}</td></tr>
-                <tr style="font-weight: bold; background-color: #d4edda;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng thu nhập</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('totalIncomeFinal').value}</td></tr>
-                <tr style="font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Tổng thực tế</td><td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${document.getElementById('actualTotal').value}</td></tr>
+            const staffName = document.getElementById('staffName').value;
+            const totalIncomeFinalFormatted = document.getElementById('totalIncomeFinalInput').value;
+            const actualTotalFormatted = document.getElementById('actualTotal').value;
+            const totalAfterOpeningFormatted = document.getElementById('totalAfterOpening').value;
+            const totalAfterExpensesFormatted = document.getElementById('totalAfterExpensesInput').value; 
+
+
+            let html = `
+                <div style="padding: 15px; background: white; max-width: 500px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px;">
+                    <h2 style="text-align: center; color: #3498db; margin-bottom: 15px; font-size: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">BÁO CÁO THU CHI HÀNG NGÀY</h2>
+                    <div style="margin-bottom: 15px; font-size: 14px; padding: 5px 0; border-bottom: 1px dashed #eee;">
+                        <strong>📅 Ngày:</strong> ${getDayOfWeek(date)}, ${date} 
+                    </div>
+                    <div style="margin-bottom: 20px; font-size: 14px; padding: 5px 0;">
+                        <strong>👤 Thu ngân:</strong> ${currentUser}
+                    </div>
+                    
+                    <table style="font-size: 14px; width: 100%; border-collapse: collapse;">
+                        <tbody>
+                            <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #3498db; text-align: left;">I. TIỀN THU VÀO TRONG CA</td></tr>
+                            <tr><td style="padding: 5px 8px;">Tiền mặt (Thu từ khách)</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('cash').value}</td></tr>
+                            <tr><td style="padding: 5px 8px;">Chuyển khoản (Thu từ khách)</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('transfer').value}</td></tr>
+                            <tr><td style="padding: 5px 8px;">Tổng Apps (Shoppe/Grab/Bee)</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('totalApps').value}</td></tr>
+                            <tr><td style="padding: 5px 8px;">Thu khác</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('otherIncome').value}</td></tr>
+                            <tr style="background-color: #eaf7ed;"><td style="padding: 8px; font-weight: bold; color: #2ecc71;">TỔNG THU (Tiền mặt + Chuyển khoản)</td><td style="padding: 8px; text-align: right; font-weight: bold; color: #2ecc71;">${document.getElementById('totalIncome').value}</td></tr>
+                            
+                            <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #e74c3c; text-align: left;">II. CHI VÀ GIẢM TRỪ</td></tr>
+                            ${expenses.length > 0 ? expenses.map(item => `<tr><td style="padding: 5px 8px;">Chi: ${item.content}</td><td style="padding: 5px 8px; text-align: right; color: #e74c3c;">-${item.formattedValue}</td></tr>`).join('') : `<tr><td colspan="2" style="padding: 5px 8px; text-align: center; color: #7f8c8d;">(Không có khoản chi tiền mặt)</td></tr>`}
+                            <tr style="color: #e74c3c;"><td style="padding: 5px 8px;">Giảm giá nhân viên (${staffName || 'Không tên'})</td><td style="padding: 5px 8px; text-align: right;">-${document.getElementById('staffDiscount').value}</td></tr>
+                            <tr style="background-color: #fcebeb;"><td style="padding: 8px; font-weight: bold; color: #e74c3c;">TỔNG CHI TIỀN MẶT</td><td style="padding: 8px; text-align: right; font-weight: bold; color: #e74c3c;">${document.getElementById('totalExpense').value}</td></tr>
+
+                            <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #f39c12; text-align: left;">III. TỔNG KẾT & TIỀN MẶT</td></tr>
+                            <tr><td style="padding: 5px 8px; font-weight: 500;">Tiền Đầu ca (Cố định)</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('openingCash').value}</td></tr>
+                            <tr><td style="padding: 5px 8px; font-weight: 500;">TỔNG TIỀN MẶT HIỆN CÓ</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${totalAfterOpeningFormatted}</td></tr>
+                            <tr style="background-color: #d1ecf1;"><td style="padding: 8px; font-weight: bold; color: #0c5460;">TỔNG NHẬN TÀI KHOẢN (CK + Apps)</td><td style="padding: 8px; text-align: right; font-weight: bold; color: #0c5460;">${document.getElementById('totalReceived').value}</td></tr>
+                            
+                            <tr style="background-color: #fcebeb; border-top: 2px solid #e74c3c;"><td style="padding: 12px 8px; font-size: 18px; font-weight: bold; color: #e74c3c;">TỔNG THU NHẬP</td><td style="padding: 12px 8px; text-align: right; font-size: 18px; font-weight: bold; color: #e74c3c;">${totalIncomeFinalFormatted}</td></tr>
+                            
+                            <tr style="background-color: #d4edda; border-top: 2px solid #2ecc71;"><td style="padding: 12px 8px; font-size: 18px; font-weight: bold; color: #2ecc71;">TỔNG NHẬN SAU CÁC CHI PHÍ</td><td style="padding: 12px 8px; text-align: right; font-size: 18px; font-weight: bold; color: #2ecc71;">${totalAfterExpensesFormatted}</td></tr>
+                            
+                            <tr style="background-color: #fff3cd; border-top: 1px solid #f39c12;"><td style="padding: 10px 8px; font-size: 16px; font-weight: bold; color: #2980b9;">TIỀN MẶT CẦN CÓ (CUỐI CA)</td><td style="padding: 10px 8px; text-align: right; font-size: 16px; font-weight: bold; color: #2980b9;">${actualTotalFormatted}</td></tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
             `;
-            
-            html += `</table></div>`;
             
             reportContent.innerHTML = html;
             
-            // Tạo ảnh từ nội dung
-            html2canvas(reportContent).then(canvas => {
+            html2canvas(reportContent, { scale: 2, useCORS: true }).then(canvas => {
                 const imageContainer = document.getElementById('exportImageContainer');
                 const exportedImage = document.getElementById('exportedImage');
                 
-                exportedImage.src = canvas.toDataURL('image/png');
+                reportContent.classList.add('hidden');
+                canvas.id = 'tempCanvas';
+                canvas.style.maxWidth = '100%';
+                canvas.style.height = 'auto';
+                
+                const existingCanvas = document.getElementById('tempCanvas');
+                if(existingCanvas) existingCanvas.remove();
+                
+                imageContainer.prepend(canvas);
+                
+                exportedImage.src = canvas.toDataURL('image/png'); 
+                
                 imageContainer.classList.remove('hidden');
                 
-                // Cuộn đến phần hiển thị ảnh
                 imageContainer.scrollIntoView({ behavior: 'smooth' });
             });
         }
-        
-        // Tải ảnh xuống
-        function downloadImage() {
-            const link = document.createElement('a');
-            link.download = `BaoCaoThuChi_${document.getElementById('selectedDate').value}_${currentUser}.png`;
-            link.href = document.getElementById('exportedImage').src;
-            link.click();
+
+        function saveAndExport() {
+            saveData();
+            generateReportImage();
         }
         
-        // Ẩn ảnh xuất
+        function downloadImage() {
+            const exportedImage = document.getElementById('exportedImage');
+            const date = document.getElementById('selectedDate').value;
+            const fileName = `BaoCaoThuChi_${date}_${currentUser}.png`;
+
+            const a = document.createElement('a');
+            a.href = exportedImage.src;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function shareViaZalo() {
+            if (!isAdmin) {
+                 downloadImage();
+                 alert(`✅ Đã tải ảnh báo cáo xuống thư viện ảnh của bạn!\n\n🔔 VUI LÒNG CHUYỂN QUA ZALO và gửi ảnh vừa tải.`);
+                 window.open('https://chat.zalo.me/', '_blank');
+            } else {
+                 alert('Chức năng chia sẻ Zalo chỉ dành cho Nhân viên Thu ngân.');
+            }
+        }
+
         function hideExportImage() {
             document.getElementById('exportImageContainer').classList.add('hidden');
+            document.getElementById('reportContent').classList.remove('hidden');
+            const canvas = document.getElementById('tempCanvas');
+            if(canvas) canvas.remove();
         }
-        
-        // Tải tất cả dữ liệu từ Firebase
-        async function loadAllData() {
-            try {
-                updateSyncStatus(false);
-                
-                const snapshot = await db.collection('dailyExpenses')
-                    .orderBy('timestamp', 'desc')
-                    .get();
-                
-                allData = {};
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const date = data.date;
-                    
-                    if (!allData[date]) {
-                        allData[date] = [];
-                    }
-                    
-                    allData[date].push(data);
-                });
-                
-                updateSyncStatus(true);
-                
-            } catch (error) {
-                console.error('Error loading data:', error);
-                alert('Lỗi khi tải dữ liệu từ server');
+
+
+        // --- EXCEL EXPORT (Đã cập nhật) ---
+
+        function exportReportsByDateRange() {
+            if (!isAdmin) return;
+            const startDate = document.getElementById('startDateAdmin').value;
+            const endDate = document.getElementById('endDateAdmin').value;
+
+            if (!startDate || !endDate) {
+                alert('Vui lòng chọn cả Ngày Bắt Đầu và Ngày Kết Thúc.');
+                return;
             }
-        }
-        
-        // Tải dữ liệu cho ngày được chọn
-        async function loadDataForDate() {
-            const date = document.getElementById('selectedDate').value;
-            if (!date) return;
-            
-            try {
-                // Reset form
-                document.getElementById('revenue').value = '';
-                document.getElementById('cash').value = '';
-                document.getElementById('transfer').value = '';
-                document.getElementById('shoppeFood').value = '';
-                document.getElementById('grabFood').value = '';
-                document.getElementById('beeFood').value = '';
-                document.getElementById('staffDiscount').value = '';
-                document.getElementById('otherIncome').value = '';
-                
-                // Reset chi phí
-                for (let i = 1; i <= expenseCount; i++) {
-                    const content = document.getElementById(`expenseContent-${i}`);
-                    const value = document.getElementById(`expenseValue-${i}`);
-                    
-                    if (content && value) {
-                        content.value = '';
-                        value.value = '';
-                    }
-                }
-                
-                // Tải dữ liệu từ Firebase
-                const docId = `${date}_${currentUser}`;
-                const doc = await db.collection('dailyExpenses').doc(docId).get();
-                
-                if (doc.exists) {
-                    const userData = doc.data();
-                    
-                    document.getElementById('revenue').value = userData.revenue.toLocaleString('vi-VN');
-                    document.getElementById('cash').value = userData.cash.toLocaleString('vi-VN');
-                    document.getElementById('transfer').value = userData.transfer.toLocaleString('vi-VN');
-                    document.getElementById('shoppeFood').value = userData.shoppeFood.toLocaleString('vi-VN');
-                    document.getElementById('grabFood').value = userData.grabFood.toLocaleString('vi-VN');
-                    document.getElementById('beeFood').value = userData.beeFood.toLocaleString('vi-VN');
-                    document.getElementById('staffDiscount').value = userData.staffDiscount.toLocaleString('vi-VN');
-                    document.getElementById('otherIncome').value = userData.otherIncome.toLocaleString('vi-VN');
-                    
-                    // Tải chi phí
-                    userData.expenses.forEach((expense, index) => {
-                        if (index < expenseCount) {
-                            document.getElementById(`expenseContent-${index+1}`).value = expense.content;
-                            document.getElementById(`expenseValue-${index+1}`).value = expense.value.toLocaleString('vi-VN');
-                        }
-                    });
-                }
-                
-                // Tính toán lại
-                calculateTotals();
-                
-            } catch (error) {
-                console.error('Error loading date data:', error);
-                alert('Lỗi khi tải dữ liệu ngày');
-            }
-        }
-        
-        // Tải dữ liệu xem
-        async function loadViewData() {
-            const date = document.getElementById('viewDate').value;
-            const viewData = document.getElementById('viewData');
-            
-            if (!date) {
-                viewData.innerHTML = '<p>Vui lòng chọn ngày!</p>';
+            if (startDate > endDate) {
+                alert('Ngày bắt đầu không được lớn hơn Ngày kết thúc.');
                 return;
             }
             
-            try {
-                // Tải dữ liệu từ Firebase cho ngày cụ thể
-                const snapshot = await db.collection('dailyExpenses')
-                    .where('date', '==', date)
-                    .get();
-                
-                if (snapshot.empty) {
-                    viewData.innerHTML = '<p>Không có dữ liệu cho ngày này!</p>';
-                    return;
-                }
-                
-                let html = '<table>';
-                html += '<tr><th>Thu ngân</th><th>Thời gian</th><th>Tiền mặt</th><th>Chuyển khoản</th><th>Tổng thu</th><th>Tổng chi</th><th>Tổng Apps</th><th>Tổng cộng</th></tr>';
-                
-                snapshot.forEach(doc => {
-                    const item = doc.data();
-                    const totalIncome = item.revenue + item.cash + item.transfer;
-                    const totalApps = item.shoppeFood + item.grabFood + item.beeFood;
-                    const totalExpense = item.expenses.reduce((sum, expense) => sum + expense.value, 0);
-                    const totalAfterOpening = item.cash + item.transfer - 500000;
-                    const totalReceived = totalAfterOpening + item.otherIncome + totalApps;
-                    const totalIncomeFinal = totalReceived - totalExpense;
-                    
-                    html += `<tr>
-                        <td>${item.user}</td>
-                        <td>${item.timestamp?.toDate().toLocaleString('vi-VN') || 'N/A'}</td>
-                        <td class="currency">${item.cash.toLocaleString('vi-VN')}</td>
-                        <td class="currency">${item.transfer.toLocaleString('vi-VN')}</td>
-                        <td class="currency">${totalIncome.toLocaleString('vi-VN')}</td>
-                        <td class="currency">${totalExpense.toLocaleString('vi-VN')}</td>
-                        <td class="currency">${totalApps.toLocaleString('vi-VN')}</td>
-                        <td class="currency">${totalIncomeFinal.toLocaleString('vi-VN')}</td>
-                    </tr>`;
-                });
-                
-                html += '</table>';
-                viewData.innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error loading view data:', error);
-                viewData.innerHTML = '<p>Lỗi khi tải dữ liệu</p>';
-            }
-        }
-        
-        // Tải danh sách người dùng
-        async function loadUserList() {
-            try {
-                const userList = document.getElementById('userList');
-                const snapshot = await db.collection('users').get();
-                
-                let html = '<h3>Danh sách thu ngân</h3>';
-                
-                snapshot.forEach(doc => {
-                    if (doc.id !== 'admin') {
-                        html += `
-                            <div class="user-item">
-                                <div>${doc.id}</div>
-                                <div class="user-actions">
-                                    <button class="btn btn-danger" onclick="deleteUser('${doc.id}')">Xóa</button>
-                                </div>
-                            </div>
-                        `;
+            document.getElementById('exportBtn').textContent = 'Đang tải...';
+            document.getElementById('exportBtn').disabled = true;
+
+            db.collection('dailyReports')
+                .where('date', '>=', startDate)
+                .where('date', '<=', endDate)
+                .orderBy('date')
+                .get()
+                .then(snapshot => {
+                    if (snapshot.empty) {
+                        alert('Không tìm thấy báo cáo nào trong khoảng ngày đã chọn.');
+                        return;
                     }
-                });
-                
-                userList.innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error loading users:', error);
-                alert('Lỗi khi tải danh sách thu ngân');
-            }
-        }
-        
-        // Thêm người dùng
-        async function addUser() {
-            const username = document.getElementById('newUserName').value;
-            
-            if (!username) {
-                alert('Vui lòng nhập tên thu ngân!');
-                return;
-            }
-            
-            try {
-                // Kiểm tra xem user đã tồn tại chưa
-                const userDoc = await db.collection('users').doc(username).get();
-                
-                if (userDoc.exists) {
-                    alert('Tên thu ngân đã tồn tại!');
-                    return;
-                }
-                
-                // Thêm user mới
-                await db.collection('users').doc(username).set({
-                    role: 'cashier',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                alert('Đã thêm thu ngân thành công!');
-                document.getElementById('newUserName').value = '';
-                
-                // Cập nhật danh sách
-                await loadUserList();
-                await loadCashierList();
-                
-            } catch (error) {
-                console.error('Error adding user:', error);
-                alert('Lỗi khi thêm thu ngân');
-            }
-        }
-        
-        // Xóa người dùng
-        async function deleteUser(username) {
-            if (confirm(`Bạn có chắc muốn xóa thu ngân ${username}?`)) {
-                try {
-                    await db.collection('users').doc(username).delete();
                     
-                    // Cập nhật danh sách
-                    await loadUserList();
-                    await loadCashierList();
+                    const wb = XLSX.utils.book_new();
                     
-                } catch (error) {
-                    console.error('Error deleting user:', error);
-                    alert('Lỗi khi xóa thu ngân');
-                }
-            }
-        }
-        
-        // Tải lịch sử nhập liệu
-        async function loadInputHistory() {
-            try {
-                const inputHistory = document.getElementById('inputHistory');
-                const snapshot = await db.collection('dailyExpenses')
-                    .orderBy('timestamp', 'desc')
-                    .limit(50)
-                    .get();
-                
-                let html = '<table>';
-                html += '<tr><th>Ngày</th><th>Thu ngân</th><th>Thời gian</th><th>Tiền mặt</th><th>Chuyển khoản</th><th>Tổng thu</th></tr>';
-                
-                snapshot.forEach(doc => {
-                    const item = doc.data();
-                    const totalIncome = item.revenue + item.cash + item.transfer;
-                    
-                    html += `<tr>
-                        <td>${item.date}</td>
-                        <td>${item.user}</td>
-                        <td>${item.timestamp?.toDate().toLocaleString('vi-VN') || 'N/A'}</td>
-                        <td class="currency">${item.cash.toLocaleString('vi-VN')}</td>
-                        <td class="currency">${item.transfer.toLocaleString('vi-VN')}</td>
-                        <td class="currency">${totalIncome.toLocaleString('vi-VN')}</td>
-                    </tr>`;
-                });
-                
-                html += '</table>';
-                inputHistory.innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error loading history:', error);
-                inputHistory.innerHTML = '<p>Lỗi khi tải lịch sử</p>';
-            }
-        }
-        
-        // Xuất ra Excel
-        async function exportToExcel() {
-            try {
-                if (Object.keys(allData).length === 0) {
-                    alert('Không có dữ liệu để xuất!');
-                    return;
-                }
-                
-                // Tạo workbook
-                const wb = XLSX.utils.book_new();
-                
-                // Tạo sheet tổng hợp
-                const summaryData = [['Ngày', 'Thứ', 'Nhân viên', 'Tiền mặt', 'Chuyển khoản', 'Thu', 'Chi', 'Shoppe Food', 'Grab Food', 'Bee Food', 'Tổng App', 'Tổng cộng']];
-                
-                // Sắp xếp dữ liệu theo ngày
-                const sortedDates = Object.keys(allData).sort((a, b) => new Date(a) - new Date(b));
-                
-                sortedDates.forEach(date => {
-                    allData[date].forEach(item => {
-                        const dateObj = new Date(date);
-                        const weekday = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'][dateObj.getDay()];
-                        const totalIncome = item.revenue + item.cash + item.transfer;
-                        const totalApps = item.shoppeFood + item.grabFood + item.beeFood;
-                        const totalExpense = item.expenses.reduce((sum, expense) => sum + expense.value, 0);
-                        const totalAfterOpening = item.cash + item.transfer - 500000;
-                        const totalReceived = totalAfterOpening + item.otherIncome + totalApps;
-                        const totalIncomeFinal = totalReceived - totalExpense;
-                        
+                    // 1. Dữ liệu cho SHEET TỔNG HỢP (Giá trị số - Excel)
+                    const summaryHeader = ['Ngày', 'Thứ', 'Nhân viên', 'Tiền mặt', 'Chuyển khoản', 'Tổng Thu (TM+CK)', 'Tổng Chi', 'Giảm Giá NV', 'Tổng Giảm Trừ', 'Tổng Apps', 'Thu Khác', 'TỔNG THU NHẬP', 'TỔNG NHẬN SAU CHI PHÍ'];
+                    const summaryData = [summaryHeader];
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const staffDiscountValue = data.staffDiscount ? data.staffDiscount.discount : 0;
+                        const totalDeductions = (data.totalExpense || 0); // Giảm giá NV không tính vào Total Deductions
+
                         summaryData.push([
-                            date,
-                            weekday,
-                            item.user,
-                            item.cash,
-                            item.transfer,
-                            totalIncome,
-                            totalExpense,
-                            item.shoppeFood,
-                            item.grabFood,
-                            item.beeFood,
-                            totalApps,
-                            totalIncomeFinal
+                            data.date,
+                            getDayOfWeek(data.date),
+                            data.user,
+                            (data.cash || 0),
+                            (data.transfer || 0),
+                            (data.totalIncome || 0),
+                            (data.totalExpense || 0),
+                            staffDiscountValue,
+                            totalDeductions,
+                            (data.totalApps || 0),
+                            (data.otherIncome || 0),
+                            (data.totalIncomeFinal || 0), // TỔNG THU NHẬP (Công thức +)
+                            (data.totalAfterExpenses || 0) // TỔNG NHẬN SAU CHI PHÍ (Công thức mới)
                         ]);
+
+                        // 2. Tạo SHEET CHI TIẾT cho từng ngày 
+                        const dateData = [
+                            ['BÁO CÁO CHI TIẾT NGÀY', data.date],
+                            ['Thu ngân', data.user],
+                            ['', ''],
+                            ['KHOẢN MỤC', 'SỐ TIỀN (VNĐ)'],
+                            ['I. THU'],
+                            ['1. Doanh thu (Tổng tiền hàng)', formatNumber(data.revenue)],
+                            ['2. Tiền mặt (Thu từ khách)', formatNumber(data.cash)],
+                            ['3. Chuyển khoản (Thu từ khách)', formatNumber(data.transfer)],
+                            ['4. Tổng Apps (Shopee, Grab, Bee)', formatNumber(data.totalApps)],
+                            ['5. Thu khác', formatNumber(data.otherIncome)],
+                            ['=> TỔNG THU (Tiền mặt + Chuyển khoản)', formatNumber(data.totalIncome)],
+                            ['', ''],
+                            ['II. CHI & GIẢM TRỪ'],
+                        ];
+
+                        data.expenses.forEach((item, index) => {
+                            dateData.push([`1. Chi ${index + 1}: ${item.content}`, formatNumber(item.value)]);
+                        });
+                        dateData.push(['=> TỔNG CHI TIỀN MẶT', formatNumber(data.totalExpense)]);
+                        dateData.push([`2. Giảm giá nhân viên (${data.staffDiscount.name || ''})`, formatNumber(data.staffDiscount.discount)]);
+
+                        dateData.push(['', ''], ['III. TỔNG KẾT']);
+                        dateData.push(['1. Đầu ca', formatNumber(OPENING_CASH)]);
+                        dateData.push(['2. TỔNG NHẬN TÀI KHOẢN (CK + Apps)', formatNumber(data.totalReceived)]);
+                        dateData.push(['3. TỔNG THU NHẬP', formatNumber(data.totalIncomeFinal)]); 
+                        dateData.push(['4. TỔNG NHẬN SAU CÁC CHI PHÍ', formatNumber(data.totalAfterExpenses)]);
+                        dateData.push(['5. TIỀN MẶT CẦN CÓ (CUỐI CA)', formatNumber(data.actualTotal)]); 
+
+                        const dateSheet = XLSX.utils.aoa_to_sheet(dateData);
+                        dateSheet['!cols'] = [{ wch: 40 }, { wch: 20 }];
+                        XLSX.utils.book_append_sheet(wb, dateSheet, data.date);
                     });
+                    
+                    // Thêm Sheet TỔNG HỢP vào đầu tiên
+                    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+                    summarySheet['!cols'] = [
+                        { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
+                        { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, 
+                        { wch: 15 }, { wch: 20 }, { wch: 20 } 
+                    ];
+                    XLSX.utils.book_append_sheet(wb, summarySheet, 'TỔNG HỢP');
+                    wb.SheetNames.unshift(wb.SheetNames.pop());
+
+
+                    XLSX.writeFile(wb, `Bao_Cao_Tong_Hop_${startDate}_den_${endDate}.xlsx`);
+                    alert('Đã xuất báo cáo Excel thành công.');
+                })
+                .catch(error => {
+                    console.error('Export error:', error);
+                    alert('Lỗi khi xuất Excel: ' + error.message);
+                })
+                .finally(() => {
+                    document.getElementById('exportBtn').textContent = 'Tải báo cáo Excel';
+                    document.getElementById('exportBtn').disabled = false;
                 });
-                
-                const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-                XLSX.utils.book_append_sheet(wb, summarySheet, 'Tổng hợp');
-                
-                // Tạo sheet cho từng ngày
-                sortedDates.forEach(date => {
-                    const dateData = [['Nội dung', 'Giá trị']];
-                    
-                    // Thêm thông tin thu
-                    dateData.push(['DOANH THU', '']);
-                    dateData.push(['Doanh thu', allData[date][0].revenue]);
-                    dateData.push(['Tiền mặt', allData[date][0].cash]);
-                    dateData.push(['Chuyển khoản', allData[date][0].transfer]);
-                    dateData.push(['', '']);
-                    
-                    // Thêm thông tin apps
-                    dateData.push(['APPS', '']);
-                    dateData.push(['Shoppe Food', allData[date][0].shoppeFood]);
-                    dateData.push(['Grab Food', allData[date][0].grabFood]);
-                    dateData.push(['Bee Food', allData[date][0].beeFood]);
-                    dateData.push(['', '']);
-                    
-                    // Thêm thông tin chi
-                    dateData.push(['CHI PHÍ', '']);
-                    allData[date][0].expenses.forEach(expense => {
-                        dateData.push([expense.content, expense.value]);
-                    });
-                    dateData.push(['', '']);
-                    
-                    // Thêm tổng kết
-                    dateData.push(['TỔNG KẾT', '']);
-                    const totalIncome = allData[date][0].revenue + allData[date][0].cash + allData[date][0].transfer;
-                    const totalApps = allData[date][0].shoppeFood + allData[date][0].grabFood + allData[date][0].beeFood;
-                    const totalExpense = allData[date][0].expenses.reduce((sum, expense) => sum + expense.value, 0);
-                    const totalAfterOpening = allData[date][0].cash + allData[date][0].transfer - 500000;
-                    const totalReceived = totalAfterOpening + allData[date][0].otherIncome + totalApps;
-                    const totalIncomeFinal = totalReceived - totalExpense;
-                    
-                    dateData.push(['Tổng thu', totalIncome]);
-                    dateData.push(['Tổng chi', totalExpense]);
-                    dateData.push(['Tổng Apps', totalApps]);
-                    dateData.push(['Tổng cộng', totalIncomeFinal]);
-                    
-                    const dateSheet = XLSX.utils.aoa_to_sheet(dateData);
-                    XLSX.utils.book_append_sheet(wb, dateSheet, date);
-                });
-                
-                // Xuất file
-                XLSX.writeFile(wb, 'So_Thu_Chi_Hang_Ngay.xlsx');
-                
-            } catch (error) {
-                console.error('Export error:', error);
-                alert('Lỗi khi xuất Excel');
-            }
         }
         
-        // Khởi tạo ứng dụng khi trang được tải
-        window.onload = initApp;
+        // --- KHỞI TẠO ---
         
-        // Thêm sự kiện tính toán tự động
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('input[type="text"]');
+        function resetForm(resetExpense = true) {
+            const inputs = document.querySelectorAll('#dataEntryForm input[type="text"]');
             inputs.forEach(input => {
-                if (input.id !== 'totalIncome' && input.id !== 'totalApps' && 
-                    input.id !== 'totalExpense' && input.id !== 'totalAfterOpening' && 
-                    input.id !== 'totalReceived' && input.id !== 'totalIncomeFinal' && 
-                    input.id !== 'actualTotal') {
-                    input.addEventListener('input', calculateTotals);
+                if (input.id !== 'openingCash') { 
+                    input.value = '0';
                 }
             });
-        });
+            document.getElementById('staffName').value = '';
+            document.getElementById('staffDiscountAmount').textContent = '0';
+            
+            if(resetExpense) {
+                initExpenseItems();
+            }
+            calculateTotals();
+        }
+        
+        window.onload = function() {
+            loadEmployees(); // Tải danh sách nhân viên từ Firebase
+        };
+        
+
     </script>
 </body>
 </html>
