@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Thu Chi Hàng Ngày</title>
+    <title>Sổ Thu Chi Hàng Ngày - Nâng cấp Mobile-First</title>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -611,7 +611,6 @@
         
         const getDayOfWeek = (dateString) => {
             const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-            // Cần parse đúng định dạng YYYY-MM-DD và dùng UTC để tránh lệch múi giờ
             const date = new Date(dateString + 'T00:00:00Z');
             return days[date.getUTCDay()]; 
         };
@@ -666,21 +665,17 @@
             }
             document.getElementById('totalExpense').value = formatNumber(totalExpense);
 
-            // 4. Giảm giá nhân viên (CHỈ GHI NHẬN, KHÔNG TÍNH VÀO TỔNG KẾT)
+            // 4. Giảm giá nhân viên
             const staffDiscount = parseCurrency(document.getElementById('staffDiscount').value);
 
             // KẾT QUẢ CUỐI CÙNG
             const totalReceived = transfer + totalApps;
             document.getElementById('totalReceived').value = formatNumber(totalReceived);
             
-            // 1. TỔNG THU NHẬP (Công thức: Tiền mặt + Chuyển khoản + Apps + Thu khác + Tổng Chi)
-            const totalIncomeFinal = totalIncome + totalApps + otherIncome + totalExpense; 
+            // Công thức Lãi/Lỗ: (Tiền mặt + Chuyển khoản) + Apps + Thu khác - Tổng Chi - Giảm giá NV
+            const totalIncomeFinal = totalIncome + totalApps + otherIncome - totalExpense - staffDiscount; 
             document.getElementById('totalIncomeFinalInput').value = formatNumber(totalIncomeFinal);
 
-            // 2. TỔNG NHẬN SAU CÁC CHI PHÍ (Công thức mới: TỔNG THU NHẬP - Tổng Chi - Đầu ca)
-            const totalAfterExpenses = totalIncomeFinal - totalExpense - OPENING_CASH;
-            document.getElementById('totalAfterExpensesInput').value = formatNumber(totalAfterExpenses);
-            
             /* --- CẬP NHẬT CÔNG THỨC TÍNH TIỀN MẶT THEO YÊU CẦU MỚI --- */
             
             // TỔNG TIỀN MẶT HIỆN CÓ: Chỉ lấy Tiền mặt thu (cash)
@@ -691,7 +686,7 @@
             const actualTotal = totalAfterOpening - OPENING_CASH;
             document.getElementById('actualTotal').value = formatNumber(actualTotal);
         }
-
+        
         // --- QUẢN LÝ FORM CHI ---
 
         function addExpenseItem(content = '', value = 0, isInitial = false) {
@@ -1092,7 +1087,7 @@
             window.location.reload();
         }
 
-        // --- HÀM XUẤT ẢNH / ZALO SHARE (Đã cập nhật) ---
+        // --- HÀM XUẤT ẢNH / ZALO SHARE (ĐÃ CẬP NHẬT) ---
 
         function generateReportImage() {
             const date = document.getElementById('selectedDate').value;
@@ -1167,7 +1162,7 @@
                 const exportedImage = document.getElementById('exportedImage');
                 
                 reportContent.classList.add('hidden');
-                canvas.id = 'tempCanvas';
+                canvas.id = 'tempCanvas'; // Đảm bảo canvas có ID để Zalo share dùng
                 canvas.style.maxWidth = '100%';
                 canvas.style.height = 'auto';
                 
@@ -1202,15 +1197,63 @@
             document.body.removeChild(a);
         }
 
+        /* --- PHẦN CẬP NHẬT THEO YÊU CẦU --- */
         function shareViaZalo() {
             if (!isAdmin) {
-                 downloadImage();
-                 alert(`✅ Đã tải ảnh báo cáo xuống thư viện ảnh của bạn!\n\n🔔 VUI LÒNG CHUYỂN QUA ZALO và gửi ảnh vừa tải.`);
-                 window.open('https://chat.zalo.me/', '_blank');
+                const canvas = document.getElementById('tempCanvas'); // Lấy canvas đã tạo
+                
+                if (!canvas) {
+                    alert('Lỗi: Vui lòng nhấn "Lưu và Xuất Ảnh" trước khi chia sẻ.');
+                    return;
+                }
+
+                // Kiểm tra Web Share API có hỗ trợ chia sẻ tệp không (Chủ yếu là Mobile)
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [] })) {
+                    // --- Phương án 1: Sử dụng Web Share API (Ưu tiên) ---
+                    
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) {
+                            alert('Lỗi: Không thể tạo tệp ảnh để chia sẻ.');
+                            return;
+                        }
+                        
+                        const date = document.getElementById('selectedDate').value;
+                        const fileName = `BaoCaoThuChi_${date}_${currentUser}.png`;
+                        const file = new File([blob], fileName, { type: 'image/png' });
+
+                        try {
+                            await navigator.share({
+                                title: `Báo cáo thu chi ngày ${date}`,
+                                text: `[Báo cáo Thu Chi] ${currentUser} ngày ${date}`,
+                                files: [file],
+                            });
+                            console.log('Chia sẻ thành công qua giao diện native.');
+                        } catch (error) {
+                            if (error.name !== 'AbortError') {
+                                console.error('Lỗi khi chia sẻ:', error);
+                                // Fallback nếu chia sẻ thất bại (ví dụ: người dùng hủy, không có ứng dụng phù hợp)
+                                // Vẫn tải ảnh xuống để người dùng chia sẻ thủ công
+                                downloadImage(); 
+                                alert(`Lỗi khi mở giao diện chia sẻ. Ảnh đã được tải xuống.\n\n🔔 VUI LÒNG CHUYỂN QUA ZALO và gửi ảnh vừa tải.`);
+                                window.open('https://chat.zalo.me/', '_blank');
+                            }
+                        }
+                    }, 'image/png');
+                
+                } else {
+                    // --- Phương án 2: Dự phòng cho Desktop hoặc trình duyệt cũ ---
+                    // Tải ảnh xuống và hướng dẫn người dùng tự gửi qua Zalo web/app
+                    downloadImage(); 
+                    alert(`Giao diện chia sẻ tự động không được hỗ trợ trên thiết bị/trình duyệt này.\n\n✅ Ảnh đã được tải xuống thư viện ảnh của bạn.\n\n🔔 VUI LÒNG CHUYỂN QUA ZALO và gửi ảnh vừa tải.`);
+                    // Mở Zalo web chat tab mới
+                    window.open('https://chat.zalo.me/', '_blank');
+                }
+
             } else {
                  alert('Chức năng chia sẻ Zalo chỉ dành cho Nhân viên Thu ngân.');
             }
         }
+        /* --- KẾT THÚC PHẦN CẬP NHẬT --- */
 
         function hideExportImage() {
             document.getElementById('exportImageContainer').classList.add('hidden');
