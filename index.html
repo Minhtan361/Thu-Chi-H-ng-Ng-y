@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Thu Chi Hàng Ngày - Nâng cấp Mobile-First</title>
+    <title>Sổ Thu Chi Hàng Ngày</title>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -11,9 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <style>
-        /* ========================================= */
-        /* 1. CSS Nâng Cấp Giao Diện (Mobile First) */
-        /* ========================================= */
+      
         :root {
             --primary-color: #3498db;
             --success-color: #2ecc71;
@@ -28,7 +26,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent; /* Loại bỏ highlight khi chạm */
+            -webkit-tap-highlight-color: transparent; 
         }
         
         body {
@@ -40,7 +38,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 10px; /* Giảm padding cho mobile */
+            padding: 10px; 
         }
         
         /* Header */
@@ -319,7 +317,7 @@
     <div id="loginBlock" class="login-container">
         <h2 class="login-title">Đăng Nhập Ứng Dụng</h2>
         <div class="form-group">
-            <label for="employeeSelect">Chọn tên của bạn (Nhân viên):</label>
+            <label for="employeeSelect">Chọn tên của bạn</label>
             <select id="employeeSelect">
                 </select>
         </div>
@@ -875,7 +873,7 @@
                 totalExpense: parseCurrency(document.getElementById('totalExpense').value),
                 totalApps: parseCurrency(document.getElementById('totalApps').value),
                 totalIncomeFinal: parseCurrency(document.getElementById('totalIncomeFinalInput').value),
-                totalAfterExpenses: parseCurrency(document.getElementById('totalAfterExpensesInput').value), // <--- ADDED totalAfterExpenses
+                totalAfterExpenses: parseCurrency(document.getElementById('totalAfterExpensesInput').value), 
                 actualTotal: parseCurrency(document.getElementById('actualTotal').value),
                 totalReceived: parseCurrency(document.getElementById('totalReceived').value), 
                 timestamp: new Date().toISOString() 
@@ -1172,6 +1170,7 @@
         function generateReportImage(callback = null) {
             const date = document.getElementById('selectedDate').value;
             const reportContent = document.getElementById('reportContent');
+            const imageContainer = document.getElementById('exportImageContainer');
             
             const expenses = [];
             for (let i = 1; i <= expenseCount; i++) {
@@ -1192,8 +1191,7 @@
             const totalIncomeFinalFormatted = document.getElementById('totalIncomeFinalInput').value;
             const actualTotalFormatted = document.getElementById('actualTotal').value;
             const totalAfterOpeningFormatted = document.getElementById('totalAfterOpening').value;
-            const totalAfterExpensesFormatted = document.getElementById('totalAfterExpensesInput').value; // <--- GET NEW VALUE
-
+            const totalAfterExpensesFormatted = document.getElementById('totalAfterExpensesInput').value;
 
             let html = `
                 <div style="padding: 15px; background: white; max-width: 500px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px;">
@@ -1236,24 +1234,29 @@
             `;
             
             reportContent.innerHTML = html;
-            
+
+            // FIX: HIỂN THỊ CONTAINER TRƯỚC KHI CHỤP ẢNH
+            imageContainer.classList.remove('hidden');
+            reportContent.classList.remove('hidden'); 
+            // End FIX
+
             html2canvas(reportContent, { scale: 2, useCORS: true }).then(canvas => {
-                const imageContainer = document.getElementById('exportImageContainer');
                 const exportedImage = document.getElementById('exportedImage');
                 
+                // Ẩn nội dung HTML (đã dùng để chụp), chỉ hiển thị ảnh Canvas/Img
                 reportContent.classList.add('hidden');
-                canvas.id = 'tempCanvas';
-                canvas.style.maxWidth = '100%';
-                canvas.style.height = 'auto';
                 
+                // Loại bỏ canvas cũ nếu có
                 const existingCanvas = document.getElementById('tempCanvas');
                 if(existingCanvas) existingCanvas.remove();
                 
+                // Thêm canvas mới vào và tạo Data URL
+                canvas.id = 'tempCanvas';
+                canvas.style.maxWidth = '100%';
+                canvas.style.height = 'auto';
                 imageContainer.prepend(canvas);
                 
                 exportedImage.src = canvas.toDataURL('image/png'); 
-                
-                imageContainer.classList.remove('hidden');
                 
                 // Chỉ scroll vào khung xem nếu không có callback (tức là chỉ bấm nút "Lưu và Xem Ảnh")
                 if (!callback) {
@@ -1286,8 +1289,6 @@
             a.click();
             document.body.removeChild(a);
         }
-
-        // ĐÃ XÓA HÀM shareViaZalo CŨ
 
         function hideExportImage() {
             document.getElementById('exportImageContainer').classList.add('hidden');
@@ -1394,7 +1395,7 @@
                     summarySheet['!cols'] = [
                         { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
                         { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, 
-                        { wch: 15 }, { wch: 20 }, { wch: 20 } // Thêm 1 cột cho TỔNG NHẬN SAU CHI PHÍ
+                        { wch: 15 }, { wch: 20 }, { wch: 20 } 
                     ];
                     XLSX.utils.book_append_sheet(wb, summarySheet, 'TỔNG HỢP');
                     wb.SheetNames.unshift(wb.SheetNames.pop());
