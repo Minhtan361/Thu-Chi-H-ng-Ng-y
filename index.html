@@ -46,16 +46,39 @@
             -webkit-tap-highlight-color: transparent; 
         }
         
+        /* HIỆU ỨNG NỀN 3D DYNAMIC BẮT ĐẦU TẠI ĐÂY */
         body {
-            background-color: var(--bg-light);
+            /* Nền gradient 4 màu chuyển động (sinh động) */
+            background: linear-gradient(-45deg, #e73c7e, #ee7752, #23a6d5, #23d5ab);
+            background-size: 400% 400%; /* Tăng kích thước để tạo animation mượt mà */
+            animation: gradient-animation 15s ease infinite; /* Áp dụng animation */
             color: var(--text-dark);
             line-height: 1.6;
+            background-attachment: fixed; /* Tạo hiệu ứng 3D/Parallax khi cuộn */
         }
+
+        /* Định nghĩa chuyển động cho nền */
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        /* HIỆU ỨNG NỀN 3D DYNAMIC KẾT THÚC TẠI ĐÂY */
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px; 
+            /* Điều chỉnh để nội dung nổi bật trên nền động */
+            background: rgba(255, 255, 255, 0.95); /* Màu nền gần trong suốt cho container */
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); 
         }
         
         /* Header */
@@ -201,7 +224,7 @@
             padding: 25px;
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Điều chỉnh bóng đổ */
             text-align: center;
         }
         
