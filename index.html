@@ -25,6 +25,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- THÊM MỚI: Thư viện cho hiệu ứng nền 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <style>
@@ -46,39 +50,35 @@
             -webkit-tap-highlight-color: transparent; 
         }
         
-        /* HIỆU ỨNG NỀN 3D DYNAMIC BẮT ĐẦU TẠI ĐÂY */
         body {
-            /* Nền gradient 4 màu chuyển động (sinh động) */
-            background: linear-gradient(-45deg, #e73c7e, #ee7752, #23a6d5, #23d5ab);
-            background-size: 400% 400%; /* Tăng kích thước để tạo animation mượt mà */
-            animation: gradient-animation 15s ease infinite; /* Áp dụng animation */
+            background-color: #000; /* Nền đen dự phòng */
             color: var(--text-dark);
             line-height: 1.6;
-            background-attachment: fixed; /* Tạo hiệu ứng 3D/Parallax khi cuộn */
         }
 
-        /* Định nghĩa chuyển động cho nền */
-        @keyframes gradient-animation {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
+        /* CSS cho nền 3D */
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Đặt canvas nằm dưới cùng */
         }
-        /* HIỆU ỨNG NỀN 3D DYNAMIC KẾT THÚC TẠI ĐÂY */
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px; 
             /* Điều chỉnh để nội dung nổi bật trên nền động */
-            background: rgba(255, 255, 255, 0.95); /* Màu nền gần trong suốt cho container */
+            background: rgba(255, 255, 255, 0.85); /* Hiệu ứng thủy tinh mờ */
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); 
+            position: relative; /* Để nổi lên trên nền vanta */
+            z-index: 1;
+            margin-top: 20px;
         }
         
         /* Header */
@@ -221,11 +221,15 @@
         .login-container {
             max-width: 400px; /* Giảm max-width */
             margin: 50px auto;
-            padding: 25px;
-            background-color: white;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.85); /* Hiệu ứng thủy tinh mờ */
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Điều chỉnh bóng đổ */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Điều chỉnh bóng đổ */
             text-align: center;
+            position: relative; /* Để nổi lên trên nền vanta */
+            z-index: 1;
         }
         
         /* Notes (Ghi chú) */
@@ -353,6 +357,9 @@
     </style>
 </head>
 <body>
+
+    <!-- Vùng chứa cho hiệu ứng nền 3D -->
+    <div id="vanta-bg"></div>
 
     <div id="loginBlock" class="login-container">
         <h2 class="login-title">Đăng Nhập Ứng Dụng</h2>
@@ -1478,6 +1485,35 @@
         
         window.onload = function() {
             loadEmployees(); // Tải danh sách nhân viên từ Firebase
+
+            // Khởi tạo hiệu ứng nền 3D
+            try {
+                VANTA.BIRDS({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                    scale: 1.0,
+                    scaleMobile: 1.0,
+                    backgroundColor: 0x1a1a2e, // Nền tối
+                    color1: 0x8955ff, // Màu chim 1 (tím)
+                    color2: 0x23a6d5, // Màu chim 2 (xanh)
+                    birdSize: 1.5,
+                    wingSpan: 20.0,
+                    speedLimit: 5.0,
+                    separation: 20.0,
+                    alignment: 20.0,
+                    cohesion: 20.0,
+                });
+            } catch (e) {
+                console.error("Lỗi khởi tạo Vanta.js:", e);
+                // Fallback nếu lỗi
+                document.body.style.background = 'linear-gradient(-45deg, #e73c7e, #ee7752, #23a6d5, #23d5ab)';
+                document.body.style.backgroundSize = '400% 400%';
+                document.body.style.animation = 'gradient-animation 15s ease infinite';
+            }
         };
         
 
