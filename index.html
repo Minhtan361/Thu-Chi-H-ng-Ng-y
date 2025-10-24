@@ -318,15 +318,31 @@
             white-space: nowrap;
         }
         
-        /* Chỉnh sửa layout cho Staff Discount */
+        /* Cập nhật CSS cho phần giảm giá nhân viên */
+        .staff-discount-section {
+            margin-bottom: 15px;
+        }
+
         .staff-discount-item {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
+            align-items: flex-start;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
         }
+
         .staff-discount-item > div {
             flex: 1;
         }
+
+        .discount-percentage-input {
+            width: 80px !important;
+            text-align: center;
+        }
+
         .discount-result {
             padding: 12px;
             border: 1px dashed #2ecc71;
@@ -335,10 +351,27 @@
             text-align: right;
             background-color: #f7fcf7;
             font-size: 16px;
-            min-height: 43px; /* Đảm bảo chiều cao như input */
+            min-height: 43px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
+        }
+
+        .add-discount-btn {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .remove-discount-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            margin-top: 25px;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         /* Employee list for Admin */
@@ -525,26 +558,16 @@
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">IV. GIẢM GIÁ NHÂN VIÊN (15%)</h3>
-                        <div class="form-group">
-                            <label for="staffName">Tên Nhân viên:</label>
-                            <input type="text" id="staffName" placeholder="Tên nhân viên hưởng giảm giá">
-                            <small class="note">Nhập tên để ghi chú trong báo cáo.</small>
+                        <h3 class="card-title">IV. GIẢM GIÁ NHÂN VIÊN</h3>
+                        <div id="staffDiscountList">
+                            <!-- Các phiếu giảm giá sẽ được thêm vào đây -->
                         </div>
-                        <div class="staff-discount-item">
-                            <div style="flex: 2;">
-                                <label for="staffBill">Giá trị Hóa đơn:</label>
-                                <input type="text" id="staffBill" value="0" oninput="calculateStaffDiscount(this)">
-                            </div>
-                            <div style="flex: 1;">
-                                <label>Giảm giá (15%):</label>
-                                <div class="discount-result" id="staffDiscountAmount">0</div>
-                            </div>
-                        </div>
+                        <button class="btn btn-primary add-discount-btn" onclick="addStaffDiscountItem()">➕ Thêm phiếu giảm giá</button>
+                        
                         <div class="form-group">
-                            <label for="staffDiscount">Tổng Giảm giá (Giá trị trừ ra):</label>
+                            <label>Tổng Giảm giá (Giá trị trừ ra):</label>
                             <input type="text" id="staffDiscount" value="0" readonly>
-                            <small class="note">Số tiền giảm trừ vào doanh thu (15% của hóa đơn). **Không tính vào Tổng kết cuối cùng.**</small>
+                            <small class="note">Tổng số tiền giảm giá từ tất cả các phiếu. **Không tính vào Tổng kết cuối cùng.**</small>
                         </div>
                     </div>
                 </div>
@@ -641,6 +664,7 @@
         let currentUser = '';
         let isAdmin = false;
         let expenseCount = 0;
+        let staffDiscountCount = 0; // Biến đếm phiếu giảm giá
         const OPENING_CASH = 500000; // 500.000 VNĐ
         let employees = []; // Danh sách nhân viên sẽ được tải từ Firebase
 
@@ -669,19 +693,91 @@
             calculateTotals();
         }
 
-        function calculateStaffDiscount(input) {
-            const billInput = document.getElementById('staffBill');
-            const billValue = parseCurrency(billInput.value);
-            
-            const discountRate = 0.15;
-            const discountAmount = Math.round(billValue * discountRate);
-            
-            document.getElementById('staffDiscountAmount').textContent = formatNumber(discountAmount);
-            document.getElementById('staffDiscount').value = formatNumber(discountAmount);
+        // --- HÀM MỚI: QUẢN LÝ PHIẾU GIẢM GIÁ ---
 
+        function addStaffDiscountItem(staffName = '', billValue = 0, discountRate = 15, isInitial = false) {
+            staffDiscountCount++;
+            const discountList = document.getElementById('staffDiscountList');
+            
+            const div = document.createElement('div');
+            div.className = 'staff-discount-item';
+            div.id = `staffDiscountItem-${staffDiscountCount}`;
+            
+            div.innerHTML = `
+                <div style="flex: 2;">
+                    <label for="staffName-${staffDiscountCount}">Tên Nhân viên:</label>
+                    <input type="text" id="staffName-${staffDiscountCount}" placeholder="Tên nhân viên hưởng giảm giá" value="${staffName}" oninput="calculateStaffDiscount(${staffDiscountCount})">
+                    
+                    <label for="staffBill-${staffDiscountCount}">Giá trị Hóa đơn:</label>
+                    <input type="text" id="staffBill-${staffDiscountCount}" value="${formatNumber(billValue)}" oninput="calculateStaffDiscount(${staffDiscountCount})">
+                </div>
+                <div style="flex: 1;">
+                    <label for="discountRate-${staffDiscountCount}">Tỷ lệ giảm giá (%):</label>
+                    <input type="number" id="discountRate-${staffDiscountCount}" class="discount-percentage-input" value="${discountRate}" min="0" max="100" oninput="calculateStaffDiscount(${staffDiscountCount})">
+                    
+                    <label>Giảm giá:</label>
+                    <div class="discount-result" id="staffDiscountAmount-${staffDiscountCount}">0</div>
+                </div>
+                <button class="btn btn-danger remove-discount-btn" onclick="removeStaffDiscountItem(${staffDiscountCount})">X</button>
+            `;
+            
+            discountList.appendChild(div);
+            
+            // Định dạng số và tính toán nếu không phải đang khởi tạo
+            if (!isInitial) {
+                document.getElementById(`staffBill-${staffDiscountCount}`).value = formatNumber(billValue);
+                calculateStaffDiscount(staffDiscountCount);
+                calculateTotalStaffDiscount();
+            }
+        }
+
+        function removeStaffDiscountItem(id) {
+            const item = document.getElementById(`staffDiscountItem-${id}`);
+            if (item) {
+                item.remove();
+                calculateTotalStaffDiscount();
+            }
+        }
+
+        function calculateStaffDiscount(id) {
+            const billInput = document.getElementById(`staffBill-${id}`);
+            const rateInput = document.getElementById(`discountRate-${id}`);
+            
+            const billValue = parseCurrency(billInput.value);
+            const discountRate = parseFloat(rateInput.value) || 0;
+            
+            // Đảm bảo tỷ lệ giảm giá trong khoảng 0-100
+            if (discountRate < 0) rateInput.value = 0;
+            if (discountRate > 100) rateInput.value = 100;
+            
+            const discountAmount = Math.round(billValue * (discountRate / 100));
+            
+            document.getElementById(`staffDiscountAmount-${id}`).textContent = formatNumber(discountAmount);
             billInput.value = formatNumber(billValue);
             
+            calculateTotalStaffDiscount();
+        }
+
+        function calculateTotalStaffDiscount() {
+            let totalDiscount = 0;
+            
+            for (let i = 1; i <= staffDiscountCount; i++) {
+                const discountElement = document.getElementById(`staffDiscountAmount-${i}`);
+                if (discountElement) {
+                    totalDiscount += parseCurrency(discountElement.textContent);
+                }
+            }
+            
+            document.getElementById('staffDiscount').value = formatNumber(totalDiscount);
             calculateTotals();
+        }
+
+        function initStaffDiscountItems() {
+            const discountList = document.getElementById('staffDiscountList');
+            discountList.innerHTML = '';
+            staffDiscountCount = 0;
+            // Khởi tạo 1 phiếu giảm giá mặc định
+            addStaffDiscountItem('', 0, 15, true);
         }
 
         // --- HÀM TÍNH TOÁN CHÍNH (CẬP NHẬT CÔNG THỨC THEO YÊU CẦU) ---
@@ -897,11 +993,25 @@
                 }
             }
 
-            const staffDiscountData = {
-                name: document.getElementById('staffName').value,
-                bill: parseCurrency(document.getElementById('staffBill').value),
-                discount: parseCurrency(document.getElementById('staffDiscount').value)
-            };
+            // Lưu dữ liệu giảm giá nhân viên (mảng các phiếu)
+            const staffDiscounts = [];
+            for (let i = 1; i <= staffDiscountCount; i++) {
+                const nameElement = document.getElementById(`staffName-${i}`);
+                const billElement = document.getElementById(`staffBill-${i}`);
+                const rateElement = document.getElementById(`discountRate-${i}`);
+                
+                if (nameElement && billElement && rateElement) {
+                    const billValue = parseCurrency(billElement.value);
+                    if (nameElement.value.trim() || billValue > 0) {
+                        staffDiscounts.push({
+                            name: nameElement.value.trim() || `Nhân viên #${i}`,
+                            bill: billValue,
+                            rate: parseFloat(rateElement.value) || 0,
+                            discount: parseCurrency(document.getElementById(`staffDiscountAmount-${i}`).textContent)
+                        });
+                    }
+                }
+            }
             
             const data = {
                 date: date,
@@ -913,7 +1023,7 @@
                 grabFood: parseCurrency(document.getElementById('grabFood').value),
                 beeFood: parseCurrency(document.getElementById('beeFood').value),
                 otherIncome: parseCurrency(document.getElementById('otherIncome').value),
-                staffDiscount: staffDiscountData,
+                staffDiscounts: staffDiscounts, // Thay đổi từ staffDiscount sang staffDiscounts (mảng)
                 expenses: expenses,
                 // Lưu các giá trị đã tính toán:
                 totalIncome: parseCurrency(document.getElementById('totalIncome').value),
@@ -980,11 +1090,21 @@
                         document.getElementById('beeFood').value = formatNumber(data.beeFood || 0);
                         document.getElementById('otherIncome').value = formatNumber(data.otherIncome || 0);
                         
-                        if (data.staffDiscount) {
-                            document.getElementById('staffName').value = data.staffDiscount.name || '';
-                            document.getElementById('staffBill').value = formatNumber(data.staffDiscount.bill || 0);
-                            document.getElementById('staffDiscount').value = formatNumber(data.staffDiscount.discount || 0);
-                            document.getElementById('staffDiscountAmount').textContent = formatNumber(data.staffDiscount.discount || 0);
+                        // Điền dữ liệu giảm giá nhân viên
+                        initStaffDiscountItems(); // Xóa và khởi tạo lại
+                        if (data.staffDiscounts && data.staffDiscounts.length > 0) {
+                            // Xóa phiếu mặc định
+                            const discountList = document.getElementById('staffDiscountList');
+                            discountList.innerHTML = '';
+                            staffDiscountCount = 0;
+                            
+                            // Thêm các phiếu từ dữ liệu
+                            data.staffDiscounts.forEach(item => {
+                                addStaffDiscountItem(item.name, item.bill, item.rate, false);
+                            });
+                        } else if (data.staffDiscount) {
+                            // Hỗ trợ dữ liệu cũ (chỉ 1 phiếu)
+                            addStaffDiscountItem(data.staffDiscount.name, data.staffDiscount.bill, 15, false);
                         }
 
                         const expenseList = document.getElementById('expenseList');
@@ -1127,7 +1247,6 @@
                 dateInput.value = today;
                 document.getElementById('dateSelectAdmin').value = today;
 
-
                 loadAdminReportList();
                 populateAdminEmployeeList(); // Hiển thị danh sách NV Admin
             } else {
@@ -1234,7 +1353,36 @@
                 }
             }
             
-            const staffName = document.getElementById('staffName').value;
+            // Xử lý hiển thị giảm giá nhân viên trong báo cáo ảnh
+            let staffDiscountsHtml = '';
+            let totalStaffDiscount = 0;
+            
+            for (let i = 1; i <= staffDiscountCount; i++) {
+                const nameElement = document.getElementById(`staffName-${i}`);
+                const billElement = document.getElementById(`staffBill-${i}`);
+                const rateElement = document.getElementById(`discountRate-${i}`);
+                const discountElement = document.getElementById(`staffDiscountAmount-${i}`);
+                
+                if (nameElement && billElement && rateElement && discountElement) {
+                    const name = nameElement.value.trim() || `Nhân viên #${i}`;
+                    const billValue = parseCurrency(billElement.value);
+                    const rate = parseFloat(rateElement.value) || 0;
+                    const discount = parseCurrency(discountElement.textContent);
+                    
+                    if (billValue > 0) {
+                        staffDiscountsHtml += `<tr style="color: #e74c3c;">
+                            <td style="padding: 5px 8px;">Giảm giá NV: ${name} (${rate}%)</td>
+                            <td style="padding: 5px 8px; text-align: right;">-${formatNumber(discount)}</td>
+                        </tr>`;
+                        totalStaffDiscount += discount;
+                    }
+                }
+            }
+            
+            if (staffDiscountsHtml === '') {
+                staffDiscountsHtml = `<tr><td colspan="2" style="padding: 5px 8px; text-align: center; color: #7f8c8d;">(Không có phiếu giảm giá nhân viên)</td></tr>`;
+            }
+
             const totalIncomeFinalFormatted = document.getElementById('totalIncomeFinalInput').value;
             const actualTotalFormatted = document.getElementById('actualTotal').value;
             const totalAfterOpeningFormatted = document.getElementById('totalAfterOpening').value;
@@ -1264,7 +1412,7 @@
                             
                             <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #e74c3c; text-align: left;">II. CHI VÀ GIẢM TRỪ</td></tr>
                             ${expenses.length > 0 ? expenses.map(item => `<tr><td style="padding: 5px 8px;">Chi: ${item.content}</td><td style="padding: 5px 8px; text-align: right; color: #e74c3c;">-${item.formattedValue}</td></tr>`).join('') : `<tr><td colspan="2" style="padding: 5px 8px; text-align: center; color: #7f8c8d;">(Không có khoản chi tiền mặt)</td></tr>`}
-                            <tr style="color: #e74c3c;"><td style="padding: 5px 8px;">Giảm giá nhân viên (${staffName || 'Không tên'})</td><td style="padding: 5px 8px; text-align: right;">-${document.getElementById('staffDiscount').value}</td></tr>
+                            ${staffDiscountsHtml}
                             <tr style="background-color: #fcebeb;"><td style="padding: 8px; font-weight: bold; color: #e74c3c;">TỔNG CHI TIỀN MẶT</td><td style="padding: 8px; text-align: right; font-weight: bold; color: #e74c3c;">${document.getElementById('totalExpense').value}</td></tr>
 
                             <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #f39c12; text-align: left;">III. TỔNG KẾT & TIỀN MẶT</td></tr>
@@ -1387,7 +1535,18 @@
 
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        const staffDiscountValue = data.staffDiscount ? data.staffDiscount.discount : 0;
+                        
+                        // Tính tổng giảm giá nhân viên từ tất cả các phiếu
+                        let totalStaffDiscountValue = 0;
+                        if (data.staffDiscounts && data.staffDiscounts.length > 0) {
+                            data.staffDiscounts.forEach(item => {
+                                totalStaffDiscountValue += (item.discount || 0);
+                            });
+                        } else if (data.staffDiscount) {
+                            // Hỗ trợ dữ liệu cũ (chỉ 1 phiếu)
+                            totalStaffDiscountValue = data.staffDiscount.discount || 0;
+                        }
+                        
                         const totalDeductions = (data.totalExpense || 0); // Giảm giá NV không tính vào Total Deductions
 
                         summaryData.push([
@@ -1398,7 +1557,7 @@
                             (data.transfer || 0),
                             (data.totalIncome || 0),
                             (data.totalExpense || 0),
-                            staffDiscountValue,
+                            totalStaffDiscountValue,
                             totalDeductions,
                             (data.totalApps || 0),
                             (data.otherIncome || 0),
@@ -1427,7 +1586,15 @@
                             dateData.push([`1. Chi ${index + 1}: ${item.content}`, formatNumber(item.value)]);
                         });
                         dateData.push(['=> TỔNG CHI TIỀN MẶT', formatNumber(data.totalExpense)]);
-                        dateData.push([`2. Giảm giá nhân viên (${data.staffDiscount.name || ''})`, formatNumber(data.staffDiscount.discount)]);
+                        
+                        // Hiển thị các phiếu giảm giá nhân viên
+                        if (data.staffDiscounts && data.staffDiscounts.length > 0) {
+                            data.staffDiscounts.forEach((item, index) => {
+                                dateData.push([`2. Giảm giá NV ${index + 1}: ${item.name} (${item.rate}%)`, formatNumber(item.discount)]);
+                            });
+                        } else if (data.staffDiscount) {
+                            dateData.push([`2. Giảm giá nhân viên (${data.staffDiscount.name || ''})`, formatNumber(data.staffDiscount.discount)]);
+                        }
 
                         dateData.push(['', ''], ['III. TỔNG KẾT']);
                         dateData.push(['1. Đầu ca', formatNumber(OPENING_CASH)]);
@@ -1474,8 +1641,9 @@
                     input.value = '0';
                 }
             });
-            document.getElementById('staffName').value = '';
-            document.getElementById('staffDiscountAmount').textContent = '0';
+            
+            // Reset phần giảm giá nhân viên
+            initStaffDiscountItems();
             
             if(resetExpense) {
                 initExpenseItems();
@@ -1485,6 +1653,7 @@
         
         window.onload = function() {
             loadEmployees(); // Tải danh sách nhân viên từ Firebase
+            initStaffDiscountItems(); // Khởi tạo phiếu giảm giá
 
             // Khởi tạo hiệu ứng nền 3D
             try {
