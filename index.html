@@ -2,1690 +2,915 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="16x16" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="57x57" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-57x57.png">
-<link rel="icon" type="image/png" sizes="60x60" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-60x60.png">
-<link rel="icon" type="image/png" sizes="72x72" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-72x72.png">
-<link rel="icon" type="image/png" sizes="76x76" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-76x76.png">
-<link rel="icon" type="image/png" sizes="96x96" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-96x96.png">
-<link rel="icon" type="image/png" sizes="114x114" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-114x114.png">
-<link rel="icon" type="image/png" sizes="120x120" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-120x120.png">
-<link rel="icon" type="image/png" sizes="144x144" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-144x144.png">
-<link rel="icon" type="image/png" sizes="152x152" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-152x152.png">
-<link rel="icon" type="image/png" sizes="180x180" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-180x180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-192x192.png">
-<link rel="icon" type="image/png" sizes="256x256" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-256x256.png">
-<link rel="icon" type="image/png" sizes="384x384" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-384x384.png">
-<link rel="icon" type="image/png" sizes="512x512" href="https://minhtan361.github.io/Thu-Chi-H-ng-Ng-y/logo/favicon-512x512.png">
-    <title>Sổ Thu Chi Hàng Ngày</title>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- THÊM MỚI: Thư viện cho hiệu ứng nền 3D -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Loyalty Program - Tích Điểm Thành Viên</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase Web SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
-      
-        :root {
-            --primary-color: #3498db;
-            --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --warning-color: #f39c12;
-            --bg-light: #ecf0f1;
-            --text-dark: #2c3e50;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent; 
-        }
-        
-        body {
-            background-color: #000; /* Nền đen dự phòng */
-            color: var(--text-dark);
-            line-height: 1.6;
-        }
-
-        /* CSS cho nền 3D */
-        #vanta-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0; /* Đặt canvas nằm dưới cùng */
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 10px; 
-            /* Điều chỉnh để nội dung nổi bật trên nền động */
-            background: rgba(255, 255, 255, 0.85); /* Hiệu ứng thủy tinh mờ */
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); 
-            position: relative; /* Để nổi lên trên nền vanta */
-            z-index: 1;
-            margin-top: 20px;
-        }
-        
-        /* Header */
-        header {
-            background: linear-gradient(135deg, var(--primary-color), #2980b9);
-            color: white;
-            padding: 15px 10px;
-            text-align: center;
-            border-radius: 8px; /* Giảm bo góc */
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header .user-info {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        #welcomeMessage {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-        
-        /* Buttons */
-        .btn {
-            padding: 12px 20px; /* Tăng kích thước nút */
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 15px;
-            width: 100%; /* Full width trên mobile */
-        }
-        
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-success { background-color: var(--success-color); color: white; }
-        .btn-zalo { background-color: #0088ff; color: white; }
-        .btn-danger { background-color: var(--danger-color); color: white; }
-        .btn-warning { background-color: var(--warning-color); color: var(--text-dark); }
-        .btn-sm { padding: 8px 12px; font-size: 13px; width: auto; margin: 3px; }
-        
-        /* Cards */
-        .card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 15px; /* Giảm padding cho mobile */
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-left: 5px solid var(--primary-color);
-        }
-        
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--text-dark);
-            border-bottom: 2px solid #ecf0f1;
-            padding-bottom: 8px;
-        }
-        
-        /* Forms */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 4px;
-            font-weight: 600;
-            color: #34495e;
-            font-size: 14px;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #bdc3c7;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        
-        input:focus, select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-            outline: none;
-        }
-
-        input[readonly] {
-            background-color: #f9f9f9;
-            font-weight: bold;
-            color: var(--text-dark);
-        }
-        
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            margin: 0 -5px; /* Giảm margin âm */
-        }
-        
-        .col {
-            flex: 1 1 100%; /* 100% chiều rộng trên mobile */
-            padding: 0 5px;
-            min-width: 0; 
-        }
-
-        /* Responsive for Desktop/Tablet */
-        @media (min-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            .col {
-                flex: 1;
-                padding: 0 12px;
-                min-width: 300px;
-            }
-            .btn {
-                width: auto;
-            }
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Login */
-        .login-container {
-            max-width: 400px; /* Giảm max-width */
-            margin: 50px auto;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.85); /* Hiệu ứng thủy tinh mờ */
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Điều chỉnh bóng đổ */
-            text-align: center;
-            position: relative; /* Để nổi lên trên nền vanta */
-            z-index: 1;
-        }
-        
-        /* Notes (Ghi chú) */
-        .note {
-            display: block;
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 4px;
-            margin-bottom: 10px;
-        }
-        
-        /* Expense list style */
-        .expense-item {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .expense-item input[type="text"]:first-child {
-            flex: 2;
-        }
-        .expense-item input[type="text"]:nth-child(2) {
-            flex: 1;
-            min-width: 100px;
-        }
-        .expense-item .btn-danger {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            margin: 0;
-            font-size: 18px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .add-expense-btn {
-            margin-top: 10px;
-        }
-
-        /* Date Selector for employee */
-        .date-selector-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-start;
-        }
-        .date-selector-container input[type="date"] {
-            width: 100%;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        @media (min-width: 768px) {
-            .action-buttons {
-                flex-direction: row;
-                justify-content: flex-end;
-            }
-            .date-selector-container {
-                flex-direction: row;
-                align-items: center;
-            }
-        }
-        
-        /* Admin Report Table */
-        #adminReportTable {
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        #adminReportTable thead th {
-            padding: 8px;
-        }
-
-        #adminReportTable tbody td {
-            padding: 8px;
-            border-bottom: 1px solid #ecf0f1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        /* Cập nhật CSS cho phần giảm giá nhân viên */
-        .staff-discount-section {
-            margin-bottom: 15px;
-        }
-
-        .staff-discount-item {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: flex-start;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background-color: #f9f9f9;
-        }
-
-        .staff-discount-item > div {
-            flex: 1;
-        }
-
-        .discount-percentage-input {
-            width: 80px !important;
-            text-align: center;
-        }
-
-        .discount-result {
-            padding: 12px;
-            border: 1px dashed #2ecc71;
-            border-radius: 6px;
-            font-weight: bold;
-            text-align: right;
-            background-color: #f7fcf7;
-            font-size: 16px;
-            min-height: 43px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
-
-        .add-discount-btn {
-            margin-top: 10px;
-            margin-bottom: 15px;
-        }
-
-        .remove-discount-btn {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            margin-top: 25px;
-            font-size: 18px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        /* Employee list for Admin */
-        .employee-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px dashed #ddd;
-        }
-
-        .employee-row:last-child {
-            border-bottom: none;
-        }
-        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        /* Tối ưu cuộn ngang cho tab trên điện thoại */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans min-h-screen text-gray-800 pb-12">
 
-    <!-- Vùng chứa cho hiệu ứng nền 3D -->
-    <div id="vanta-bg"></div>
-
-    <div id="loginBlock" class="login-container">
-        <h2 class="login-title">Đăng Nhập Ứng Dụng</h2>
-        <div class="form-group">
-            <label for="employeeSelect">Chọn tên của bạn</label>
-            <select id="employeeSelect">
+    <!-- HEADER & NGÔN NGỮ -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-base sm:text-xl font-bold truncate pr-2" data-i18n="appTitle">Hệ Thống Tích Điểm</h1>
+            <div class="flex items-center gap-1 sm:gap-2">
+                <span class="text-xs hidden sm:inline" data-i18n="langLabel">Ngôn ngữ:</span>
+                <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-indigo-700 text-white rounded text-xs sm:text-sm px-2 py-1 border border-indigo-500 focus:outline-none font-medium">
+                    <option value="vi">🇻🇳 Việt</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="th">🇹🇭 ไทย</option>
                 </select>
-        </div>
-        <div class="form-group">
-            <button class="btn btn-primary" onclick="login()">Đăng Nhập Thu Ngân</button>
-        </div>
-        
-        <div class="admin-login" style="margin-top: 30px;">
-            <h4 style="margin-bottom: 15px; color: #7f8c8d;">--- Quản trị viên ---</h4>
-            <div class="form-group">
-                <label for="adminPassword">Mật khẩu Admin:</label>
-                <input type="password" id="adminPassword" placeholder="Mật khẩu">
             </div>
-            <button class="btn btn-warning" onclick="adminLogin()">Đăng Nhập Admin</button>
         </div>
-    </div>
+    </header>
 
-    <div id="appContainer" class="container hidden">
-        <header>
-            <div class="user-info">
-                <span id="welcomeMessage"></span>
+    <main class="max-w-4xl mx-auto px-3 sm:px-4 mt-4">
+
+       
+        <div class="flex border-b border-gray-200 mb-4 bg-white rounded-lg shadow-sm overflow-x-auto no-scrollbar">
+            <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex-1 min-w-[110px] py-3 px-2 text-center text-xs sm:text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50" data-i18n="tabRegister">Đăng Ký</button>
+            <button onclick="switchTab('customer')" id="tab-customer" class="tab-btn flex-1 min-w-[110px] py-3 px-2 text-center text-xs sm:text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-indigo-600" data-i18n="tabCustomer">Khách Hàng</button>
+            <button onclick="switchTab('staff')" id="tab-staff" class="tab-btn flex-1 min-w-[130px] py-3 px-2 text-center text-xs sm:text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-indigo-600" data-i18n="tabStaff">Quản Lý / NV</button>
+        </div>
+
+        <!--  ĐĂNG KÝ THÀNH VIÊN -->
+        <div id="view-register" class="tab-content active bg-white p-4 sm:p-6 rounded-xl shadow-sm max-w-md mx-auto">
+            <h2 class="text-lg font-bold mb-3 text-gray-800" data-i18n="regTitle">THAI THAE Xin Chào</h2>
+            <form id="regForm" onsubmit="handleRegister(event)">
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="phoneLabel">Số điện thoại:</label>
+                    <input type="tel" id="regPhone" required placeholder="0901234567" class="w-full text-base px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="nameLabel">Họ Tên:</label>
+                    <input type="text" id="regName" required placeholder="Nguyễn Văn A" class="w-full text-base px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 active:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-sm transition text-sm" data-i18n="btnRegister">Đăng Ký Ngay</button>
+            </form>
+
+            <div id="regResult" class="mt-4 hidden p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-green-700 font-bold text-sm" data-i18n="regSuccess">Đăng ký thành công!</p>
+                <div class="mt-2 text-xs sm:text-sm text-gray-700 bg-white p-3 border rounded shadow-inner">
+                    <p class="font-bold text-indigo-600" data-i18n="couponGift">🎁 Quà tặng chào mừng:</p>
+                    <p data-i18n="couponDesc">Uu đãi: Miễn phí 1 ly nước bất kỳ cho thành viên mới</p>
+                    <p class="text-xs text-gray-500 mt-1"><span data-i18n="expiryLabel">Hạn sử dụng (30 ngày) tính từ thời điểm đăng ký:</span> <span id="couponExpiry" class="font-semibold text-gray-700"></span></p>
+                </div>
             </div>
-            <button class="btn btn-danger btn-sm" onclick="logout()">Đăng Xuất</button>
-        </header>
-
-        <div id="syncStatus" style="text-align: center; padding: 10px; margin-bottom: 15px; border-radius: 6px; background-color: #95a5a6; color: white;">
-            Offline
         </div>
-        
-        <div class="card" id="adminReportManagement" style="display:none;">
-            <h3 class="card-title" style="color: var(--danger-color); border-left: 5px solid var(--danger-color);">QUẢN LÝ BÁO CÁO</h3>
+
+        <!-- KHÁCH  (TRA CỨU & ĐỔI QUÀ) -->
+        <div id="view-customer" class="tab-content bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+            <h2 class="text-lg font-bold mb-3 text-gray-800" data-i18n="custTitle">Tra Cứu Điểm & Đổi Quà</h2>
             
-            <div class="card" id="adminEmployeeManagement" style="border-left: 5px solid #2980b9;">
-                <h3 class="card-title" style="color: #2980b9;">QUẢN LÝ NHÂN VIÊN THU NGÂN</h3>
-                <div class="form-group">
-                    <label for="newEmployeeName">Tên Thu ngân mới:</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="newEmployeeName" placeholder="Ví dụ: Nguyễn Văn X" style="flex: 1;">
-                        <button class="btn btn-primary btn-sm" onclick="addEmployee()" style="width: auto;">Thêm</button>
-                    </div>
-                </div>
-                <h4 style="margin-top: 15px; margin-bottom: 10px;">Danh sách hiện tại:</h4>
-                <div id="employeeListAdmin">
-                    </div>
+            <div class="flex gap-2 mb-4">
+                <input type="tel" id="custPhoneSearch" placeholder="Nhập số điện thoại..." class="flex-1 text-base px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <button onclick="searchCustomer()" class="bg-indigo-600 active:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm" data-i18n="btnSearch">Tra cứu</button>
             </div>
 
-            <h3 class="card-title" style="margin-top: 20px;">XEM & CHỈNH SỬA BÁO CÁO</h3>
-            <div style="margin-bottom: 20px;">
-                <label for="dateSelectAdmin">Chọn ngày để xem/sửa:</label>
-                <div class="date-selector-container">
-                    <input type="date" id="dateSelectAdmin" onchange="loadDataToForm(true)">
-                    <button class="btn btn-primary" onclick="loadDataToForm(true)">Tải dữ liệu</button>
+            <div id="custInfoArea" class="hidden">
+                <!-- Thẻ thông tin điểm -->
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 sm:p-5 rounded-xl mb-4 shadow-md">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xs opacity-80" data-i18n="custNameLabel">Tên khách hàng</p>
+                            <h3 id="custNameDisplay" class="text-lg sm:text-xl font-bold">---</h3>
+                            <p id="custPhoneDisplay" class="text-xs opacity-90">---</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs opacity-80" data-i18n="custPointsLabel">Điểm hiện có</p>
+                            <p id="custPointsDisplay" class="text-3xl sm:text-4xl font-extrabold text-yellow-300">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-indigo-400/40 text-[11px] opacity-90 flex justify-between items-center">
+                        <span>⏳ <span data-i18n="pointsExpiryNote">Điểm sẽ tự động hết hạn sau 30 ngày</span></span>
+                        <span id="custExpiryDate" class="font-medium text-yellow-200"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Danh Sách Đổi Điểm -->
+                    <div>
+                        <h3 class="text-sm font-bold mb-2 text-gray-800" data-i18n="redeemTitle">Danh Mục Quà Đổi Điểm</h3>
+                        <div id="rewardList" class="space-y-2">
+                            <!-- JS render quà tặng -->
+                        </div>
+                    </div>
+
+                    <!-- Lịch Sử Điểm -->
+                    <div>
+                        <h3 class="text-sm font-bold mb-2 text-gray-800" data-i18n="historyTitle">Lịch Sử Điểm (30 Ngày)</h3>
+                        <div class="border rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-100 text-gray-700 border-b sticky top-0">
+                                    <tr>
+                                        <th class="p-2" data-i18n="thDate">Thời gian</th>
+                                        <th class="p-2" data-i18n="thPoints">Điểm</th>
+                                        <th class="p-2" data-i18n="thDesc">Mô tả</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <!-- JS render lịch sử -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <h4 style="margin-bottom: 10px; color: var(--primary-color);">Danh sách ngày đã ghi chép</h4>
-            <div style="overflow-x: auto;">
-                <table id="adminReportTable" style="width:100%; min-width: 400px;">
-                    <thead>
-                        <tr style="background:#3498db; color:#fff;">
-                            <th style="width: 15%; padding: 8px;">Ngày</th>
-                            <th style="width: 20%; padding: 8px;">Nhân viên</th>
-                            <th style="width: 35%; padding: 8px;">Thời gian nhập cuối</th> 
-                            <th style="width: 30%; padding: 8px;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminReportTableBody">
+        <!-- 3. TAB CỔNG QUẢN LÝ / NHÂN VIÊN -->
+        <div id="view-staff" class="tab-content bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-6">
+            <h2 class="text-lg font-bold text-gray-800" data-i18n="staffTitle">Cổng Thông Tin Nhân Viên & Quản Lý</h2>
+
+            <!-- A. Tích Điểm Hóa Đơn -->
+            <div class="border p-4 rounded-xl bg-gray-50">
+                <h3 class="text-sm sm:text-base font-bold mb-3 text-indigo-700" data-i18n="addPointsTitle">Tích Điểm Hóa Đơn (100.000 VNĐ = 1 điểm)</h3>
+                <form id="addPointsForm" onsubmit="handleAddPoints(event)" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="phoneLabel">SĐT Khách:</label>
+                            <input type="tel" id="staffPhone" required class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="transIdLabel">Mã GD (TxID):</label>
+                            <input type="text" id="staffTxId" required placeholder="TX1029" class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="amountLabel">Tổng tiền (VND):</label>
+                            <input type="number" id="staffAmount" min="0" step="1000" required placeholder="250000" class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 active:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm" data-i18n="btnAddPoints">Cộng Điểm Tự Động</button>
+                </form>
+            </div>
+
+            <!-- B. QUẢN LÝ DANH MỤC MÓN ĐỔI QUÀ (CRUD) -->
+            <div class="border p-4 rounded-xl bg-gray-50">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm sm:text-base font-bold text-indigo-700" data-i18n="manageRewardsTitle">Quản Lý Món Đổi Điểm</h3>
+                    <button onclick="openRewardModal()" class="bg-green-600 active:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1">
+                        <span>+</span> <span data-i18n="btnAddReward">Thêm món</span>
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs bg-white rounded-lg overflow-hidden border">
+                        <thead class="bg-gray-100 border-b">
+                            <tr>
+                                <th class="p-2" data-i18n="thItemIcon">STT</th>
+                                <th class="p-2" data-i18n="thItemName">Tên Món</th>
+                                <th class="p-2" data-i18n="thItemPoints">Điểm</th>
+                                <th class="p-2 text-center" data-i18n="thAction">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffRewardTableBody">
+                            <!-- JS render danh sách món -->
                         </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
 
-            <div style="margin-top:20px;">
-                <h4 style="margin-bottom: 10px;">Tải báo cáo Excel (Tổng hợp)</h4>
-                <div class="date-selector-container">
-                    <label>Từ ngày:</label>
-                    <input type="date" id="startDateAdmin">
-                    <label>Đến ngày:</label>
-                    <input type="date" id="endDateAdmin">
-                    <button class="btn btn-warning" onclick="exportReportsByDateRange()" id="exportBtn">Tải báo cáo Excel</button>
-                </div>
+            <!-- Chỉnh Sửa Điểm Trực Tiếp -->
+            <div class="border p-4 rounded-xl bg-gray-50">
+                <h3 class="text-sm sm:text-base font-bold mb-3 text-amber-700" data-i18n="adjustTitle">Điều Chỉnh Điểm Trực Tiếp (Admin)</h3>
+                <form id="adjustPointsForm" onsubmit="handleAdjustPoints(event)" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="phoneLabel">SĐT Khách:</label>
+                            <input type="tel" id="adjPhone" required class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="adjTypeLabel">Hành động:</label>
+                            <select id="adjType" class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="add" data-i18n="optAdd">Cộng thêm điểm</option>
+                                <option value="deduct" data-i18n="optDeduct">Trừ bớt điểm</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="pointsLabel">Số điểm:</label>
+                            <input type="number" id="adjPoints" min="1" required class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="reasonLabel">Lý do:</label>
+                            <input type="text" id="adjReason" required placeholder="Sự cố hệ thống, đền bù..." class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-600 active:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-sm" data-i18n="btnAdjust">Cập Nhật Điểm</button>
+                </form>
             </div>
         </div>
+    </main>
 
-        <div id="dataEntryForm" class="hidden">
-            <div class="card">
-                <div class="date-selector-container" style="margin-bottom: 15px;">
-                    <label for="selectedDate">Ngày làm việc:</label>
-                    <input type="date" id="selectedDate" onchange="loadDataToForm(isAdmin)">
-                    <button class="btn btn-primary btn-sm" onclick="loadDataToForm(isAdmin)">Tải dữ liệu</button>
+    <!-- THÊM / SỬA MÓN ĐỔI QUÀ -->
+    <div id="rewardModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <h3 id="modalTitle" class="text-base font-bold text-gray-800" data-i18n="modalAddTitle">Thêm Món Đổi Điểm Mới</h3>
+            <form id="rewardForm" onsubmit="handleSaveReward(event)" class="space-y-3">
+                <input type="hidden" id="modalRewardId">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="labelIcon">Biểu tượng (Emoji):</label>
+                    <input type="text" id="modalIcon" required placeholder="..." class="w-full text-base px-3 py-2 border rounded-lg">
                 </div>
-            </div>
-
-            <div class="row">
-                <div class="col">
-                    <div class="card">
-                        <h3 class="card-title">I. PHẦN THU (DOANH THU & TIỀN MẶT)</h3>
-                        <div class="form-group">
-                            <label for="revenue">1. Doanh thu (Tổng tiền hàng):</label>
-                            <input type="text" id="revenue" value="0" oninput="formatAndCalculate(this)">
-                            <small class="note">Tổng giá trị hóa đơn đã bán trong ca.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="cash">2. Tiền mặt (Khách trả tiền mặt):</label>
-                            <input type="text" id="cash" value="0" oninput="formatAndCalculate(this)">
-                            <small class="note">Số tiền mặt thực tế nhận từ khách.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="transfer">3. Chuyển khoản (Khách chuyển khoản):</label>
-                            <input type="text" id="transfer" value="0" oninput="formatAndCalculate(this)">
-                            <small class="note">Tổng số tiền khách chuyển khoản trực tiếp vào tài khoản.</small>
-                        </div>
-                        
-                        <hr style="margin: 20px 0;">
-                        
-                        <h3 class="card-title" style="border-left: 5px solid var(--success-color); padding-left: 10px;">TỔNG THU</h3>
-                        <div class="form-group">
-                            <label>TỔNG THU (Tiền mặt + Chuyển khoản):</label>
-                            <input type="text" id="totalIncome" value="0" readonly>
-                            <small class="note">Tiền mặt thực nhận + Tiền chuyển khoản thực nhận (chưa bao gồm Apps).</small>
-                        </div>
-
-                        <h3 class="card-title">II. APPS (Shoppe, Grab, Bee)</h3>
-                        <div class="form-group">
-                            <label for="shoppeFood">Shoppe Food (Tiền khách trả trên App):</label>
-                            <input type="text" id="shoppeFood" value="0" oninput="formatAndCalculate(this)">
-                        </div>
-                        <div class="form-group">
-                            <label for="grabFood">Grab Food (Tiền khách trả trên App):</label>
-                            <input type="text" id="grabFood" value="0" oninput="formatAndCalculate(this)">
-                        </div>
-                        <div class="form-group">
-                            <label for="beeFood">Bee Food (Tiền khách trả trên App):</label>
-                            <input type="text" id="beeFood" value="0" oninput="formatAndCalculate(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>TỔNG APPS:</label>
-                            <input type="text" id="totalApps" value="0" readonly>
-                            <small class="note">Tổng doanh thu từ tất cả các ứng dụng giao hàng.</small>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="labelNameVi">Tên Món (Tiếng Việt):</label>
+                    <input type="text" id="modalNameVi" required class="w-full text-base px-3 py-2 border rounded-lg">
                 </div>
-
-                <div class="col">
-                    <div class="card">
-                        <h3 class="card-title">III. PHẦN CHI (TIỀN MẶT)</h3>
-                        <div id="expenseList">
-                            </div>
-                        <button class="btn btn-primary add-expense-btn" onclick="addExpenseItem()">➕ Thêm mục chi</button>
-                        
-                        <hr style="margin: 20px 0;">
-                        
-                        <h3 class="card-title" style="border-left: 5px solid var(--danger-color); padding-left: 10px;">TỔNG CHI</h3>
-                        <div class="form-group">
-                            <label>TỔNG CHI (Tổng cộng các mục chi tiền mặt):</label>
-                            <input type="text" id="totalExpense" value="0" readonly>
-                            <small class="note">Tổng tiền mặt chi ra cho các hoạt động trong ca.</small>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3 class="card-title">IV. GIẢM GIÁ NHÂN VIÊN</h3>
-                        <div id="staffDiscountList">
-                            <!-- Các phiếu giảm giá sẽ được thêm vào đây -->
-                        </div>
-                        <button class="btn btn-primary add-discount-btn" onclick="addStaffDiscountItem()">➕ Thêm phiếu giảm giá</button>
-                        
-                        <div class="form-group">
-                            <label>Tổng Giảm giá (Giá trị trừ ra):</label>
-                            <input type="text" id="staffDiscount" value="0" readonly>
-                            <small class="note">Tổng số tiền giảm giá từ tất cả các phiếu. **Không tính vào Tổng kết cuối cùng.**</small>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="labelNameEn">Tên Món (Tiếng Anh):</label>
+                    <input type="text" id="modalNameEn" required class="w-full text-base px-3 py-2 border rounded-lg">
                 </div>
-            </div>
-
-            <div class="card" style="border-left: 5px solid var(--warning-color);">
-                <h3 class="card-title">V. TỔNG KẾT & TIỀN MẶT THỰC NHẬN</h3>
-                <div class="row">
-                    <div class="col">
-                        <div class="form-group">
-                            <label>Đầu ca (Tiền mặt cố định):</label>
-                            <input type="text" id="openingCash" value="500,000" readonly>
-                            <small class="note">Tiền mặt cố định được nhận vào đầu ca ($500.000).</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="otherIncome">Thu khác (Ngoài doanh thu, nếu có):</label>
-                            <input type="text" id="otherIncome" value="0" oninput="formatAndCalculate(this)">
-                            <small class="note">Các khoản thu ngoài doanh thu bán hàng (ví dụ: tiền cọc, thu hồi nợ).</small>
-                        </div>
-                        <div class="form-group">
-                            <label style="color: #2980b9;">TỔNG NHẬN TÀI KHOẢN (Chuyển khoản + Apps):</label>
-                            <input type="text" id="totalReceived" value="0" readonly style="color: #2980b9;">
-                            <small class="note">Tổng số tiền sẽ nhận được vào Tài khoản Ngân hàng (CK khách trả + Tổng Apps).</small>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-group">
-                            <label>TỔNG TIỀN MẶT HIỆN CÓ (Tiền mặt thu):</label>
-                            <input type="text" id="totalAfterOpening" value="0" readonly>
-                            <small class="note">**TIỀN MẶT THU** thực tế từ khách.</small>
-                        </div>
-                        <div class="form-group">
-                            <label style="color: #1e8449;">TIỀN MẶT CẦN CÓ (CUỐI CA):</label>
-                            <input type="text" id="actualTotal" value="0" readonly style="color: #1e8449;">
-                            <small class="note">Số tiền mặt còn lại sau khi trừ tiền đầu ca. Công thức: (Tiền mặt thu) - (Đầu ca).</small>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="labelNameTh">Tên Món (Tiếng Thái):</label>
+                    <input type="text" id="modalNameTh" required class="w-full text-base px-3 py-2 border rounded-lg">
                 </div>
-
-                <div class="form-group" style="margin-top: 30px; padding-top: 15px; border-top: 2px solid #ddd;">
-                    <label style="color: var(--danger-color); font-size: 18px;">TỔNG THU NHẬP (Theo yêu cầu):</label>
-                    <input type="text" id="totalIncomeFinalInput" value="0" readonly style="color: var(--danger-color); font-weight: bold; background-color: #fcebeb !important; border: 3px solid var(--danger-color) !important; font-size: 24px !important; height: 50px !important;">
-                    <small class="note" style="font-size: 14px; font-weight: bold;">Công thức: Tiền mặt + Chuyển khoản + Apps + Thu khác + Tổng Chi.</small>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="labelPoints">Số điểm đổi món:</label>
+                    <input type="number" id="modalPoints" min="1" required class="w-full text-base px-3 py-2 border rounded-lg">
                 </div>
-                
-                <div class="form-group">
-                    <label style="color: var(--success-color); font-size: 18px; font-weight: bold;">TỔNG NHẬN SAU CÁC CHI PHÍ:</label>
-                    <input type="text" id="totalAfterExpensesInput" value="0" readonly style="color: var(--success-color); font-weight: bold; background-color: #eaf7ed !important; border: 3px solid var(--success-color) !important; font-size: 24px !important; height: 50px !important;">
-                    <small class="note" style="font-size: 14px; font-weight: bold;">Công thức: (Tiền mặt + Chuyển khoản + Apps + Thu khác) - Tổng Chi.</small>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeRewardModal()" class="flex-1 bg-gray-200 text-gray-800 font-bold py-2 rounded-lg text-sm" data-i18n="btnCancel">Hủy</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-lg text-sm" data-i18n="btnSave">Lưu Món</button>
                 </div>
-                </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-success" onclick="saveAndExport()">Lưu và Xem Ảnh</button>
-                
-                <button class="btn btn-zalo" onclick="saveCopyAndShare()" id="saveShareBtn" style="flex: 2;">✅ Lưu, Sao chép Ảnh & Mở Zalo</button>
-                
-                <button class="btn btn-danger" onclick="clearDataForDate()" id="clearDateBtn">Xóa dữ liệu ngày này</button>
-            </div>
+            </form>
         </div>
-
-        <div id="exportImageContainer" class="export-image-container hidden" style="margin-top: 20px;">
-            <div id="reportContent" style="background: white; margin-bottom: 15px; overflow-x: auto;">
-                </div>
-            <img id="exportedImage" src="" alt="Báo cáo thu chi" style="max-width: 100%; height: auto; display: none;">
-            <div style="margin-top: 20px;" class="action-buttons">
-                <button class="btn btn-primary" onclick="downloadImage()">Tải ảnh xuống</button>
-                <button class="btn btn-danger" onclick="hideExportImage()">Đóng</button>
-            </div>
-        </div>
-
     </div>
 
+    <!-- JAVASCRIPT -->
     <script>
-        // Cấu hình Firebase CỦA BẠN ĐÃ CẬP NHẬT
+        // Cấu hình Firebase
         const firebaseConfig = {
-             apiKey: "AIzaSyBI6gADn7OPIJbK3x4tu69Zh5eRLoXO_zs",
-             authDomain: "minhtan-d6ecd.firebaseapp.com",
-             projectId: "minhtan-d6ecd",
-             storageBucket: "minhtan-d6ecd.firebasestorage.app",
-             messagingSenderId: "490270665555",
-             appId: "1:490270665555:web:7df829b497cf0985448fa6",
+            apiKey: "AIzaSyBI6gADn7OPIJbK3x4tu69Zh5eRLoXO_zs",
+            authDomain: "minhtan-d6ecd.firebaseapp.com",
+            projectId: "minhtan-d6ecd",
+            storageBucket: "minhtan-d6ecd.firebasestorage.app",
+            messagingSenderId: "490270665555",
+            appId: "1:490270665555:web:7df829b497cf0985448fa6"
         };
-        
-        // Mật khẩu Admin KHÔNG NÊN LƯU TRONG CLIENT-SIDE. Dùng tạm để test.
-        const ADMIN_PASSWORD = 'thaithae2025@';
 
-        // Khởi tạo Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
-        
-        let currentUser = '';
-        let isAdmin = false;
-        let expenseCount = 0;
-        let staffDiscountCount = 0; // Biến đếm phiếu giảm giá
-        const OPENING_CASH = 500000; // 500.000 VNĐ
-        let employees = []; // Danh sách nhân viên sẽ được tải từ Firebase
 
-        // --- HÀM TIỆN ÍCH ---
+        // HẰNG SỐ: 30 NGÀY TÍNH BẰNG MILISECOND
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
-        function parseCurrency(value) {
-            if (!value) return 0;
-            return parseFloat(value.toString().replace(/[^0-9-]/g, '')) || 0;
-        }
+        // DANH MỤC MÓN MẶC ĐỊNH 
+        const DEFAULT_REWARDS = [
+            { id: "1", icon: "☕", name: { vi: "Cà phê Americano / Bạc Xỉu", en: "Americano / Iced Coffee", th: "กาแฟอเมริกาโน่" }, points: 5 },
+            { id: "2", icon: "🧋", name: { vi: "Trà sữa Truyền thống", en: "Traditional Milk Tea", th: "ชานมไต้หวัน" }, points: 8 },
+            { id: "3", icon: "🍰", name: { vi: "Bánh ngọt Tiramisu", en: "Tiramisu Cake", th: "เค้กทิรามิสุ" }, points: 12 },
+            { id: "4", icon: "🥤", name: { vi: "Bình giữ nhiệt thương hiệu", en: "Thermal Tumbler", th: "แก้วเก็บความเย็น" }, points: 25 }
+        ];
 
-        function formatNumber(number) {
-            if (typeof number !== 'number' || isNaN(number)) return '0';
-            return number.toLocaleString('en-US');
-        }
-        
-        const getDayOfWeek = (dateString) => {
-            const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-            // Cần parse đúng định dạng YYYY-MM-DD và dùng UTC để tránh lệch múi giờ
-            const date = new Date(dateString + 'T00:00:00Z');
-            return days[date.getUTCDay()]; 
+        // TỪ ĐIỂN ĐA NGÔN NGỮ (VI - EN - TH)
+        const dictionary = {
+            vi: {
+                appTitle: "Hệ Thống Tích Điểm",
+                langLabel: "Ngôn ngữ:",
+                tabRegister: "Đăng Ký",
+                tabCustomer: "Khách Hàng",
+                tabStaff: "Quản Lý / NV",
+                regTitle: "Đăng Ký Thành Viên Mới",
+                phoneLabel: "Số điện thoại:",
+                nameLabel: "Họ và Tên:",
+                btnRegister: "Đăng Ký Ngay",
+                regSuccess: "Đăng ký thành công!",
+                couponGift: "🎁 Quà tặng chào mừng:",
+                couponDesc: "Phiếu ưu đãi: Miễn phí 1 ly nước bất kỳ",
+                expiryLabel: "Hạn sử dụng:",
+                custTitle: "Tra Cứu Điểm & Đổi Quà",
+                btnSearch: "Tra cứu",
+                custNameLabel: "Tên khách hàng",
+                custPointsLabel: "Điểm hiện có",
+                pointsExpiryNote: "Điểm sẽ tự động reset về 0 sau 30 ngày tích lũy",
+                redeemTitle: "Danh Mục Quà Đổi Điểm",
+                historyTitle: "Lịch Sử Điểm (30 Ngày)",
+                thDate: "Thời gian",
+                thPoints: "Điểm",
+                thDesc: "Mô tả",
+                staffTitle: "Cổng Thông Tin Nhân Viên & Quản Lý",
+                addPointsTitle: "Tích Điểm Hóa Đơn (100.000 VNĐ = 1 điểm)",
+                transIdLabel: "Mã GD (TxID):",
+                amountLabel: "Tổng tiền (VND):",
+                btnAddPoints: "Cộng Điểm Tự Động",
+                manageRewardsTitle: "Quản Lý Món Đổi Điểm",
+                btnAddReward: "Thêm món",
+                thItemIcon: "Icon",
+                thItemName: "Tên Món",
+                thItemPoints: "Điểm",
+                thAction: "Thao tác",
+                adjustTitle: "Điều Chỉnh Điểm Trực Tiếp (Admin)",
+                adjTypeLabel: "Hành động:",
+                optAdd: "Cộng thêm điểm",
+                optDeduct: "Trừ bớt điểm",
+                pointsLabel: "Số điểm:",
+                reasonLabel: "Lý do:",
+                btnAdjust: "Cập Nhật Điểm",
+                btnRedeem: "Đổi Ngay",
+                btnEdit: "Sửa",
+                btnDelete: "Xóa",
+                modalAddTitle: "Thêm Món Đổi Điểm Mới",
+                modalEditTitle: "Chỉnh Sửa Món Đổi Điểm",
+                labelIcon: "Biểu tượng (Emoji):",
+                labelNameVi: "Tên Món (Tiếng Việt):",
+                labelNameEn: "Tên Món (Tiếng Anh):",
+                labelNameTh: "Tên Món (Tiếng Thái):",
+                labelPoints: "Số điểm đổi món:",
+                btnCancel: "Hủy",
+                btnSave: "Lưu Món",
+                msgUserNotFound: "Không tìm thấy SĐT này!",
+                msgRegExist: "Số điện thoại này đã được đăng ký!",
+                msgNotEnoughPoints: "Không đủ điểm để đổi quà này!",
+                msgRedeemSuccess: "Đổi quà thành công!",
+                msgAddPointsSuccess: "Thêm điểm thành công!",
+                msgAdjSuccess: "Cập nhật điểm thành công!",
+                msgExpiredReset: "Điểm đã tự động reset về 0 do hết hạn 30 ngày",
+                msgConfirmDelete: "Bạn có chắc chắn muốn xóa món này?"
+            },
+            en: {
+                appTitle: "Loyalty Program",
+                langLabel: "Language:",
+                tabRegister: "Register",
+                tabCustomer: "Customer",
+                tabStaff: "Staff / Admin",
+                regTitle: "New Member Registration",
+                phoneLabel: "Phone Number:",
+                nameLabel: "Full Name:",
+                btnRegister: "Register Now",
+                regSuccess: "Registration Successful!",
+                couponGift: "🎁 Welcome Gift:",
+                couponDesc: "Voucher: 1 Free Drink Coupon",
+                expiryLabel: "Expiry Date:",
+                custTitle: "Points Lookup & Rewards",
+                btnSearch: "Search",
+                custNameLabel: "Customer Name",
+                custPointsLabel: "Current Points",
+                pointsExpiryNote: "Points automatically reset to 0 after 30 days",
+                redeemTitle: "Reward Catalog",
+                historyTitle: "Points History (30 Days)",
+                thDate: "Date",
+                thPoints: "Points",
+                thDesc: "Description",
+                staffTitle: "Staff & Management Portal",
+                addPointsTitle: "Invoice Points (100,000 VND = 1 Point)",
+                transIdLabel: "TxID:",
+                amountLabel: "Amount (VND):",
+                btnAddPoints: "Add Points Automatically",
+                manageRewardsTitle: "Manage Reward Catalog",
+                btnAddReward: "Add Item",
+                thItemIcon: "Icon",
+                thItemName: "Item Name",
+                thItemPoints: "Points",
+                thAction: "Action",
+                adjustTitle: "Manual Points Adjustment",
+                adjTypeLabel: "Action:",
+                optAdd: "Add Points",
+                optDeduct: "Deduct Points",
+                pointsLabel: "Points:",
+                reasonLabel: "Reason:",
+                btnAdjust: "Update Points",
+                btnRedeem: "Redeem",
+                btnEdit: "Edit",
+                btnDelete: "Delete",
+                modalAddTitle: "Add New Reward Item",
+                modalEditTitle: "Edit Reward Item",
+                labelIcon: "Icon (Emoji):",
+                labelNameVi: "Item Name (Vietnamese):",
+                labelNameEn: "Item Name (English):",
+                labelNameTh: "Item Name (Thai):",
+                labelPoints: "Required Points:",
+                btnCancel: "Cancel",
+                btnSave: "Save Item",
+                msgUserNotFound: "Phone number not found!",
+                msgRegExist: "Phone number already registered!",
+                msgNotEnoughPoints: "Insufficient points!",
+                msgRedeemSuccess: "Redeemed successfully!",
+                msgAddPointsSuccess: "Points added successfully!",
+                msgAdjSuccess: "Points updated successfully!",
+                msgExpiredReset: "Points auto-reset to 0 after 30 days expiration",
+                msgConfirmDelete: "Are you sure you want to delete this item?"
+            },
+            th: {
+                appTitle: "ระบบสะสมแต้ม",
+                langLabel: "ภาษา:",
+                tabRegister: "ลงทะเบียน",
+                tabCustomer: "ลูกค้า",
+                tabStaff: "ผู้ดูแล/พนักงาน",
+                regTitle: "ลงทะเบียนสมาชิกใหม่",
+                phoneLabel: "เบอร์โทรศัพท์:",
+                nameLabel: "ชื่อ-นามสกุล:",
+                btnRegister: "ลงทะเบียน",
+                regSuccess: "ลงทะเบียนสำเร็จ!",
+                couponGift: "🎁 ของขวัญต้อนรับ:",
+                couponDesc: "คูปอง: ฟรีเครื่องดื่ม 1 แก้ว",
+                expiryLabel: "หมดอายุวันที่:",
+                custTitle: "เช็คแต้ม & แลกของรางวัล",
+                btnSearch: "ค้นหา",
+                custNameLabel: "ชื่อลูกค้า",
+                custPointsLabel: "คะแนนสะสม",
+                pointsExpiryNote: "คะแนนจะถูกรีเซ็ตเป็น 0 อัตโนมัติหลัง 30 วัน",
+                redeemTitle: "รายการของรางวัล",
+                historyTitle: "ประวัติคะแนน (30 วัน)",
+                thDate: "วันที่",
+                thPoints: "คะแนน",
+                thDesc: "รายละเอียด",
+                staffTitle: "ระบบจัดการสำหรับพนักงาน",
+                addPointsTitle: "คำนวณแต้มจากใบเสร็จ (100,000 VND = 1 แต้ม)",
+                transIdLabel: "รหัสธุรกรรม:",
+                amountLabel: "ยอดเงิน (VND):",
+                btnAddPoints: "สะสมแต้มอัตโนมัติ",
+                manageRewardsTitle: "จัดการรายการของรางวัล",
+                btnAddReward: "เพิ่มของรางวัล",
+                thItemIcon: "ไอคอน",
+                thItemName: "ชื่อรายการ",
+                thItemPoints: "คะแนน",
+                thAction: "จัดการ",
+                adjustTitle: "ปรับปรุงคะแนนโดยตรง",
+                adjTypeLabel: "รายการ:",
+                optAdd: "เพิ่มคะแนน",
+                optDeduct: "หักคะแนน",
+                pointsLabel: "คะแนน:",
+                reasonLabel: "เหตุผล:",
+                btnAdjust: "อัปเดตคะแนน",
+                btnRedeem: "แลก",
+                btnEdit: "แก้ไข",
+                btnDelete: "ลบ",
+                modalAddTitle: "เพิ่มรายการของรางวัลใหม่",
+                modalEditTitle: "แก้ไขรายการของรางวัล",
+                labelIcon: "ไอคอน (Emoji):",
+                labelNameVi: "ชื่อ (ภาษาเวียดนาม):",
+                labelNameEn: "ชื่อ (ภาษาอังกฤษ):",
+                labelNameTh: "ชื่อ (ภาษาไทย):",
+                labelPoints: "คะแนนที่ใช้แลก:",
+                btnCancel: "ยกเลิก",
+                btnSave: "บันทึก",
+                msgUserNotFound: "ไม่พบเบอร์โทรศัพท์นี้!",
+                msgRegExist: "เบอร์โทรศัพท์นี้ลงทะเบียนแล้ว!",
+                msgNotEnoughPoints: "คะแนนสะสมไม่พอ!",
+                msgRedeemSuccess: "แลกของรางวัลสำเร็จ!",
+                msgAddPointsSuccess: "เพิ่มคะแนนสำเร็จ!",
+                msgAdjSuccess: "ปรับปรุงคะแนนเรียบร้อย!",
+                msgExpiredReset: "คะแนนรีเซ็ตเป็น 0 อัตโนมัติเนื่องจากหมดอายุ 30 วัน",
+                msgConfirmDelete: "คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?"
+            }
         };
 
-        function formatAndCalculate(input) {
-            const num = parseCurrency(input.value);
-            input.value = formatNumber(num);
-            calculateTotals();
+        let currentLang = 'vi';
+        let currentSearchPhone = null;
+        let usersCache = JSON.parse(localStorage.getItem('loyalty_users') || '{}');
+        let rewardsCache = JSON.parse(localStorage.getItem('loyalty_rewards') || 'null');
+
+        // --- FIRESTORE DATA MANAGEMENT ---
+        function getUsers() {
+            return usersCache;
         }
 
-        // --- HÀM MỚI: QUẢN LÝ PHIẾU GIẢM GIÁ ---
-
-        function addStaffDiscountItem(staffName = '', billValue = 0, discountRate = 15, isInitial = false) {
-            staffDiscountCount++;
-            const discountList = document.getElementById('staffDiscountList');
-            
-            const div = document.createElement('div');
-            div.className = 'staff-discount-item';
-            div.id = `staffDiscountItem-${staffDiscountCount}`;
-            
-            div.innerHTML = `
-                <div style="flex: 2;">
-                    <label for="staffName-${staffDiscountCount}">Tên Nhân viên:</label>
-                    <input type="text" id="staffName-${staffDiscountCount}" placeholder="Tên nhân viên hưởng giảm giá" value="${staffName}" oninput="calculateStaffDiscount(${staffDiscountCount})">
-                    
-                    <label for="staffBill-${staffDiscountCount}">Giá trị Hóa đơn:</label>
-                    <input type="text" id="staffBill-${staffDiscountCount}" value="${formatNumber(billValue)}" oninput="calculateStaffDiscount(${staffDiscountCount})">
-                </div>
-                <div style="flex: 1;">
-                    <label for="discountRate-${staffDiscountCount}">Tỷ lệ giảm giá (%):</label>
-                    <input type="number" id="discountRate-${staffDiscountCount}" class="discount-percentage-input" value="${discountRate}" min="0" max="100" oninput="calculateStaffDiscount(${staffDiscountCount})">
-                    
-                    <label>Giảm giá:</label>
-                    <div class="discount-result" id="staffDiscountAmount-${staffDiscountCount}">0</div>
-                </div>
-                <button class="btn btn-danger remove-discount-btn" onclick="removeStaffDiscountItem(${staffDiscountCount})">X</button>
-            `;
-            
-            discountList.appendChild(div);
-            
-            // Định dạng số và tính toán nếu không phải đang khởi tạo
-            if (!isInitial) {
-                document.getElementById(`staffBill-${staffDiscountCount}`).value = formatNumber(billValue);
-                calculateStaffDiscount(staffDiscountCount);
-                calculateTotalStaffDiscount();
-            }
-        }
-
-        function removeStaffDiscountItem(id) {
-            const item = document.getElementById(`staffDiscountItem-${id}`);
-            if (item) {
-                item.remove();
-                calculateTotalStaffDiscount();
-            }
-        }
-
-        function calculateStaffDiscount(id) {
-            const billInput = document.getElementById(`staffBill-${id}`);
-            const rateInput = document.getElementById(`discountRate-${id}`);
-            
-            const billValue = parseCurrency(billInput.value);
-            const discountRate = parseFloat(rateInput.value) || 0;
-            
-            // Đảm bảo tỷ lệ giảm giá trong khoảng 0-100
-            if (discountRate < 0) rateInput.value = 0;
-            if (discountRate > 100) rateInput.value = 100;
-            
-            const discountAmount = Math.round(billValue * (discountRate / 100));
-            
-            document.getElementById(`staffDiscountAmount-${id}`).textContent = formatNumber(discountAmount);
-            billInput.value = formatNumber(billValue);
-            
-            calculateTotalStaffDiscount();
-        }
-
-        function calculateTotalStaffDiscount() {
-            let totalDiscount = 0;
-            
-            for (let i = 1; i <= staffDiscountCount; i++) {
-                const discountElement = document.getElementById(`staffDiscountAmount-${i}`);
-                if (discountElement) {
-                    totalDiscount += parseCurrency(discountElement.textContent);
-                }
-            }
-            
-            document.getElementById('staffDiscount').value = formatNumber(totalDiscount);
-            calculateTotals();
-        }
-
-        function initStaffDiscountItems() {
-            const discountList = document.getElementById('staffDiscountList');
-            discountList.innerHTML = '';
-            staffDiscountCount = 0;
-            // Khởi tạo 1 phiếu giảm giá mặc định
-            addStaffDiscountItem('', 0, 15, true);
-        }
-
-        // --- HÀM TÍNH TOÁN CHÍNH (CẬP NHẬT CÔNG THỨC THEO YÊU CẦU) ---
-
-        function calculateTotals() {
-            // Lấy input
-            const revenue = parseCurrency(document.getElementById('revenue').value);
-            const cash = parseCurrency(document.getElementById('cash').value);
-            const transfer = parseCurrency(document.getElementById('transfer').value);
-            const otherIncome = parseCurrency(document.getElementById('otherIncome').value);
-            
-            const totalIncome = cash + transfer;
-            document.getElementById('totalIncome').value = formatNumber(totalIncome);
-
-            // 2. Apps
-            const shoppeFood = parseCurrency(document.getElementById('shoppeFood').value);
-            const grabFood = parseCurrency(document.getElementById('grabFood').value);
-            const beeFood = parseCurrency(document.getElementById('beeFood').value);
-            const totalApps = shoppeFood + grabFood + beeFood;
-            document.getElementById('totalApps').value = formatNumber(totalApps);
-
-            // 3. Chi
-            let totalExpense = 0;
-            for (let i = 1; i <= expenseCount; i++) {
-                const valueElement = document.getElementById(`expenseValue-${i}`);
-                if (valueElement) {
-                    totalExpense += parseCurrency(valueElement.value);
-                }
-            }
-            document.getElementById('totalExpense').value = formatNumber(totalExpense);
-
-            // 4. Giảm giá nhân viên (CHỈ GHI NHẬN, KHÔNG TÍNH VÀO TỔNG KẾT)
-            const staffDiscount = parseCurrency(document.getElementById('staffDiscount').value);
-
-            // KẾT QUẢ CUỐI CÙNG
-            const totalReceived = transfer + totalApps;
-            document.getElementById('totalReceived').value = formatNumber(totalReceived);
-            
-            // 1. TỔNG THU NHẬP (Theo yêu cầu: Tiền mặt + Chuyển khoản + Apps + Thu khác + Tổng Chi)
-            const totalIncomeFinal = totalIncome + totalApps + otherIncome + totalExpense; 
-            document.getElementById('totalIncomeFinalInput').value = formatNumber(totalIncomeFinal);
-
-            // 2. TỔNG NHẬN SAU CÁC CHI PHÍ (Kết quả cuối cùng: (Tiền mặt + Chuyển khoản + Apps + Thu khác) - Tổng Chi)
-            const totalAfterExpenses = totalIncome + totalApps + otherIncome - totalExpense;
-            document.getElementById('totalAfterExpensesInput').value = formatNumber(totalAfterExpenses);
-            
-            /* --- CẬP NHẬT CÔNG THỨC TÍNH TIỀN MẶT THEO YÊU CẦU MỚI --- */
-            
-            // TỔNG TIỀN MẶT HIỆN CÓ: Chỉ lấy Tiền mặt thu (cash)
-            const totalAfterOpening = cash; 
-            document.getElementById('totalAfterOpening').value = formatNumber(totalAfterOpening);
-
-            // TIỀN MẶT CẦN CÓ (CUỐI CA): Tiền mặt hiện có (mới) - Đầu ca
-            const actualTotal = totalAfterOpening - OPENING_CASH;
-            document.getElementById('actualTotal').value = formatNumber(actualTotal);
-        }
-
-        // --- QUẢN LÝ FORM CHI ---
-
-        function addExpenseItem(content = '', value = 0, isInitial = false) {
-            expenseCount++;
-            const expenseList = document.getElementById('expenseList');
-            
-            const div = document.createElement('div');
-            div.className = 'expense-item';
-            div.id = `expenseItem-${expenseCount}`;
-            
-            // Cho phép thêm / xóa mục chi linh hoạt
-            const deleteButtonHtml = `<button class="btn btn-danger btn-sm" onclick="removeExpenseItem(${expenseCount})">X</button>`;
-            
-            div.innerHTML = `
-                <input type="text" id="expenseContent-${expenseCount}" placeholder="Nội dung chi (vd: Mua nguyên liệu)" value="${content}">
-                <input type="text" id="expenseValue-${expenseCount}" value="${formatNumber(value)}" oninput="formatAndCalculate(this)">
-                ${deleteButtonHtml}
-            `;
-            
-            expenseList.appendChild(div);
-            // Re-attach event listener for new input
-            document.getElementById(`expenseValue-${expenseCount}`).addEventListener('input', () => formatAndCalculate(document.getElementById(`expenseValue-${expenseCount}`)));
-            
-            // Chỉ tính toán khi không phải đang khởi tạo 5 mục rỗng
-            if(!isInitial) {
-                 calculateTotals();
-            }
-        }
-
-        function removeExpenseItem(id) {
-            const item = document.getElementById(`expenseItem-${id}`);
-            if (item) {
-                item.remove();
-                calculateTotals();
-            }
-        }
-        
-        function initExpenseItems() {
-            const expenseList = document.getElementById('expenseList');
-            expenseList.innerHTML = '';
-            expenseCount = 0;
-            // Khởi tạo 5 mục chi rỗng ban đầu, có nút X
-            for (let i = 0; i < 5; i++) {
-                addExpenseItem('', 0, false);
-            }
-        }
-        
-        // --- QUẢN LÝ NHÂN VIÊN (MỚI) ---
-        
-        async function loadEmployees() {
-            try {
-                const doc = await db.collection('config').doc('employees').get();
-                if (doc.exists) {
-                    employees = doc.data().list || [];
-                } else {
-                    // Mặc định ban đầu nếu chưa có data
-                    employees = ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C'];
-                    await saveEmployees(); // Lưu lại list mặc định
-                }
-                populateEmployeeSelect();
-                if (isAdmin) {
-                    populateAdminEmployeeList();
-                }
-            } catch (error) {
-                console.error("Lỗi khi tải danh sách nhân viên:", error);
-                // Dùng danh sách tạm nếu lỗi
-                employees = ['Nguyễn Văn A (Lỗi tải)', 'Trần Thị B (Lỗi tải)'];
-                populateEmployeeSelect();
-            }
-        }
-        
-        async function saveEmployees() {
-            try {
-                // Lọc bỏ mục rỗng/trùng lặp và sắp xếp
-                const uniqueEmployees = Array.from(new Set(employees.filter(n => n.trim() !== '')));
-                employees = uniqueEmployees.sort();
-                await db.collection('config').doc('employees').set({ list: employees });
-                populateEmployeeSelect();
-                if (isAdmin) {
-                    populateAdminEmployeeList();
-                }
-                return true;
-            } catch (error) {
-                alert('Lỗi khi lưu danh sách nhân viên: ' + error.message);
-                return false;
-            }
-        }
-        
-        function populateEmployeeSelect() {
-            const select = document.getElementById('employeeSelect');
-            select.innerHTML = '<option value="" disabled selected>Chọn tên nhân viên...</option>';
-            employees.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                select.appendChild(option);
+        function saveUsers(users) {
+            usersCache = users;
+            localStorage.setItem('loyalty_users', JSON.stringify(users));
+            syncUsersToFirestore(users).catch(error => {
+                console.error('Không thể lưu người dùng lên Firestore:', error);
             });
         }
-        
-        function populateAdminEmployeeList() {
-            const listContainer = document.getElementById('employeeListAdmin');
-            listContainer.innerHTML = '';
-            employees.forEach(name => {
-                const div = document.createElement('div');
-                div.className = 'employee-row';
-                div.innerHTML = `
-                    <span>${name}</span>
-                    <button class="btn btn-danger btn-sm" onclick="removeEmployee('${name}')">Xóa</button>
+
+        function getRewards() {
+            if (!rewardsCache) rewardsCache = DEFAULT_REWARDS;
+            return rewardsCache;
+        }
+
+        function saveRewards(rewards) {
+            rewardsCache = rewards;
+            localStorage.setItem('loyalty_rewards', JSON.stringify(rewards));
+            db.collection('settings').doc('rewards').set({
+                items: rewards,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(error => {
+                console.error('Không thể lưu danh mục quà lên Firestore:', error);
+            });
+            renderStaffRewards();
+            if (currentSearchPhone) renderCustomerView(currentSearchPhone);
+        }
+
+        async function syncUsersToFirestore(users) {
+            const batch = db.batch();
+            Object.entries(users).forEach(([phone, user]) => {
+                batch.set(db.collection('users').doc(phone), user);
+            });
+            await batch.commit();
+        }
+
+        async function loadFirebaseData() {
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                const remoteUsers = {};
+                usersSnapshot.forEach(doc => { remoteUsers[doc.id] = doc.data(); });
+
+                if (usersSnapshot.empty && Object.keys(usersCache).length) {
+                    await syncUsersToFirestore(usersCache);
+                } else {
+                    usersCache = remoteUsers;
+                    localStorage.setItem('loyalty_users', JSON.stringify(usersCache));
+                }
+
+                const rewardsDoc = await db.collection('settings').doc('rewards').get();
+                if (rewardsDoc.exists && Array.isArray(rewardsDoc.data().items)) {
+                    rewardsCache = rewardsDoc.data().items;
+                    localStorage.setItem('loyalty_rewards', JSON.stringify(rewardsCache));
+                } else {
+                    if (!rewardsCache) rewardsCache = DEFAULT_REWARDS;
+                    await db.collection('settings').doc('rewards').set({
+                        items: rewardsCache,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+
+                renderStaffRewards();
+                if (currentSearchPhone && usersCache[currentSearchPhone]) {
+                    renderCustomerView(currentSearchPhone);
+                }
+            } catch (error) {
+                console.error('Không thể tải dữ liệu từ Firestore:', error);
+                alert('Không thể kết nối Firebase. Hệ thống tạm dùng dữ liệu trên thiết bị này.');
+            }
+        }
+
+        loadFirebaseData();
+
+        // --- HÀM TỰ ĐỘNG KIỂM TRA & RESET ĐIỂM SAU 30 NGÀY ---
+        function checkAndResetPointExpiry(user) {
+            if (!user) return false;
+            const now = Date.now();
+
+            // Nếu user có điểm và đã quá 30 ngày tính từ lần cập nhật điểm cuối
+            if (user.points > 0 && user.lastPointUpdate && (now - user.lastPointUpdate > THIRTY_DAYS_MS)) {
+                user.history.push({
+                    date: new Date().toLocaleString(),
+                    type: "EXPIRED",
+                    points: -user.points,
+                    desc: dictionary[currentLang].msgExpiredReset
+                });
+                user.points = 0;
+                user.lastPointUpdate = now; // Cập nhật lại thời gian
+                return true; // Đã reset điểm
+            }
+            return false;
+        }
+
+        // --- CHUYỂN NGÔN NGỮ ---
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(elem => {
+                const key = elem.getAttribute('data-i18n');
+                if (dictionary[lang][key]) {
+                    elem.innerText = dictionary[lang][key];
+                }
+            });
+
+            renderStaffRewards();
+            if (currentSearchPhone) renderCustomerView(currentSearchPhone);
+        }
+
+        // --- CHUYỂN TAB ---
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+                b.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            document.getElementById(`view-${tab}`).classList.add('active');
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.classList.add('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+
+            if (tab === 'staff') renderStaffRewards();
+        }
+
+        // --- 1. XỬ LÝ ĐĂNG KÝ THÀNH VIÊN ---
+        function handleRegister(e) {
+            e.preventDefault();
+            const phone = document.getElementById('regPhone').value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const users = getUsers();
+
+            if (users[phone]) {
+                alert(dictionary[currentLang].msgRegExist);
+                return;
+            }
+
+            const now = Date.now();
+            const expiryDate = new Date(now + THIRTY_DAYS_MS);
+
+            users[phone] = {
+                name: name,
+                points: 0,
+                lastPointUpdate: now,
+                history: [
+                    {
+                        date: new Date().toLocaleString(),
+                        type: "WELCOME",
+                        points: 0,
+                        desc: "Đăng ký thành viên, tặng Coupon 30 ngày"
+                    }
+                ]
+            };
+
+            saveUsers(users);
+
+            document.getElementById('couponExpiry').innerText = expiryDate.toLocaleDateString();
+            document.getElementById('regResult').classList.remove('hidden');
+            document.getElementById('regForm').reset();
+        }
+
+        // --- 2. TRA CỨU KHÁCH HÀNG ---
+        function searchCustomer() {
+            const phone = document.getElementById('custPhoneSearch').value.trim();
+            const users = getUsers();
+
+            if (!users[phone]) {
+                alert(dictionary[currentLang].msgUserNotFound);
+                document.getElementById('custInfoArea').classList.add('hidden');
+                currentSearchPhone = null;
+                return;
+            }
+
+            // Tự động kiểm tra reset điểm trước khi hiển thị
+            const isReset = checkAndResetPointExpiry(users[phone]);
+            if (isReset) saveUsers(users);
+
+            currentSearchPhone = phone;
+            renderCustomerView(phone);
+        }
+
+        function renderCustomerView(phone) {
+            const users = getUsers();
+            const user = users[phone];
+            const rewards = getRewards();
+
+            document.getElementById('custInfoArea').classList.remove('hidden');
+            document.getElementById('custNameDisplay').innerText = user.name;
+            document.getElementById('custPhoneDisplay').innerText = phone;
+            document.getElementById('custPointsDisplay').innerText = user.points;
+
+            // Hạn sử dụng điểm
+            if (user.lastPointUpdate && user.points > 0) {
+                const expDate = new Date(user.lastPointUpdate + THIRTY_DAYS_MS);
+                document.getElementById('custExpiryDate').innerText = expDate.toLocaleDateString();
+            } else {
+                document.getElementById('custExpiryDate').innerText = "---";
+            }
+
+            // Render Danh mục quà tặng
+            const rewardContainer = document.getElementById('rewardList');
+            rewardContainer.innerHTML = '';
+            rewards.forEach(item => {
+                const canRedeem = user.points >= item.points;
+                const itemName = item.name[currentLang] || item.name['vi'];
+
+                rewardContainer.innerHTML += `
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl">${item.icon}</span>
+                            <div>
+                                <p class="font-bold text-gray-800 text-xs sm:text-sm">${itemName}</p>
+                                <p class="text-xs text-indigo-600 font-extrabold">${item.points} pts</p>
+                            </div>
+                        </div>
+                        <button onclick="redeemReward('${item.id}')" ${!canRedeem ? 'disabled' : ''} 
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${canRedeem ? 'bg-green-600 active:bg-green-700 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}">
+                            ${dictionary[currentLang].btnRedeem}
+                        </button>
+                    </div>
                 `;
-                listContainer.appendChild(div);
+            });
+
+            // Render Lịch sử điểm
+            const historyBody = document.getElementById('historyTableBody');
+            historyBody.innerHTML = '';
+            user.history.slice().reverse().forEach(h => {
+                const colorClass = h.points > 0 ? 'text-green-600 font-bold' : (h.points < 0 ? 'text-red-600 font-bold' : 'text-gray-500');
+                const pointsDisplay = h.points > 0 ? `+${h.points}` : h.points;
+
+                historyBody.innerHTML += `
+                    <tr class="border-b text-[11px] sm:text-xs">
+                        <td class="p-2 text-gray-500 whitespace-nowrap">${h.date}</td>
+                        <td class="p-2 ${colorClass} whitespace-nowrap">${pointsDisplay}</td>
+                        <td class="p-2 text-gray-700">${h.desc}</td>
+                    </tr>
+                `;
             });
         }
-        
-        function addEmployee() {
-            const nameInput = document.getElementById('newEmployeeName');
-            const name = nameInput.value.trim();
-            if (name && !employees.includes(name)) {
-                employees.push(name);
-                saveEmployees();
-                nameInput.value = '';
-            } else if (employees.includes(name)) {
-                alert('Nhân viên này đã có trong danh sách.');
-            } else {
-                alert('Vui lòng nhập tên.');
-            }
-        }
-        
-        function removeEmployee(name) {
-            if (confirm(`Bạn có chắc muốn xóa nhân viên ${name} khỏi danh sách?`)) {
-                employees = employees.filter(n => n !== name);
-                saveEmployees();
-            }
-        }
 
-        // --- XỬ LÝ DỮ LIỆU FIREBASE (saveData, loadDataToForm, loadAdminReportList, deleteReport) ---
-        
-        function saveData() {
-            const date = document.getElementById('selectedDate').value;
-            if (!date) {
-                alert('Vui lòng chọn ngày.');
+        // --- 3. ĐỔI QUÀ ---
+        function redeemReward(rewardId) {
+            if (!currentSearchPhone) return;
+
+            const users = getUsers();
+            const user = users[currentSearchPhone];
+            const rewards = getRewards();
+            const reward = rewards.find(r => r.id == rewardId);
+
+            checkAndResetPointExpiry(user);
+
+            if (!reward || user.points < reward.points) {
+                alert(dictionary[currentLang].msgNotEnoughPoints);
                 return;
             }
 
-            const expenses = [];
-            for (let i = 1; i <= expenseCount; i++) {
-                const content = document.getElementById(`expenseContent-${i}`);
-                const value = document.getElementById(`expenseValue-${i}`);
-                if (content && value) {
-                    const numValue = parseCurrency(value.value);
-                    if (content.value.trim() || numValue > 0) {
-                        expenses.push({
-                            content: content.value.trim() || `Mục chi #${i}`,
-                            value: numValue
-                        });
-                    }
-                }
-            }
+            const itemName = reward.name[currentLang] || reward.name['vi'];
 
-            // Lưu dữ liệu giảm giá nhân viên (mảng các phiếu)
-            const staffDiscounts = [];
-            for (let i = 1; i <= staffDiscountCount; i++) {
-                const nameElement = document.getElementById(`staffName-${i}`);
-                const billElement = document.getElementById(`staffBill-${i}`);
-                const rateElement = document.getElementById(`discountRate-${i}`);
-                
-                if (nameElement && billElement && rateElement) {
-                    const billValue = parseCurrency(billElement.value);
-                    if (nameElement.value.trim() || billValue > 0) {
-                        staffDiscounts.push({
-                            name: nameElement.value.trim() || `Nhân viên #${i}`,
-                            bill: billValue,
-                            rate: parseFloat(rateElement.value) || 0,
-                            discount: parseCurrency(document.getElementById(`staffDiscountAmount-${i}`).textContent)
-                        });
-                    }
-                }
-            }
-            
-            const data = {
-                date: date,
-                user: currentUser,
-                revenue: parseCurrency(document.getElementById('revenue').value),
-                cash: parseCurrency(document.getElementById('cash').value),
-                transfer: parseCurrency(document.getElementById('transfer').value),
-                shoppeFood: parseCurrency(document.getElementById('shoppeFood').value),
-                grabFood: parseCurrency(document.getElementById('grabFood').value),
-                beeFood: parseCurrency(document.getElementById('beeFood').value),
-                otherIncome: parseCurrency(document.getElementById('otherIncome').value),
-                staffDiscounts: staffDiscounts, // Thay đổi từ staffDiscount sang staffDiscounts (mảng)
-                expenses: expenses,
-                // Lưu các giá trị đã tính toán:
-                totalIncome: parseCurrency(document.getElementById('totalIncome').value),
-                totalExpense: parseCurrency(document.getElementById('totalExpense').value),
-                totalApps: parseCurrency(document.getElementById('totalApps').value),
-                totalIncomeFinal: parseCurrency(document.getElementById('totalIncomeFinalInput').value),
-                totalAfterExpenses: parseCurrency(document.getElementById('totalAfterExpensesInput').value), 
-                actualTotal: parseCurrency(document.getElementById('actualTotal').value),
-                totalReceived: parseCurrency(document.getElementById('totalReceived').value), 
-                timestamp: new Date().toISOString() 
-            };
+            user.points -= reward.points;
+            user.history.push({
+                date: new Date().toLocaleString(),
+                type: "REDEEM",
+                points: -reward.points,
+                desc: `Đổi quà: ${itemName}`
+            });
 
-            db.collection('dailyReports').doc(date).set(data)
-                .then(() => {
-                    document.getElementById('syncStatus').textContent = 'Đã lưu thành công! ✅';
-                    document.getElementById('syncStatus').style.backgroundColor = '#2ecc71';
-                    if (isAdmin) {
-                        loadAdminReportList(); 
-                        document.getElementById('dateSelectAdmin').value = date; 
-                    }
-                })
-                .catch(error => {
-                    alert('Lỗi khi lưu dữ liệu: ' + error.message);
-                    console.error('Error saving document: ', error);
-                });
+            saveUsers(users);
+            alert(dictionary[currentLang].msgRedeemSuccess);
+            renderCustomerView(currentSearchPhone);
         }
 
-        function loadDataToForm(isFromAdmin) {
-            const dateInputId = isFromAdmin ? 'dateSelectAdmin' : 'selectedDate';
-            const formDateInput = document.getElementById('selectedDate');
-            let date = document.getElementById(dateInputId).value;
+        // --- 4. CỔNG NHÂN VIÊN: TÍCH ĐIỂM HÓA ĐƠN ---
+        function handleAddPoints(e) {
+            e.preventDefault();
+            const phone = document.getElementById('staffPhone').value.trim();
+            const txId = document.getElementById('staffTxId').value.trim();
+            const amount = parseFloat(document.getElementById('staffAmount').value);
 
-            if (isFromAdmin) {
-                formDateInput.value = date; 
-            } else {
-                date = formDateInput.value;
-            }
-
-            if (!date) return;
-
-            document.getElementById('dataEntryForm').classList.remove('hidden'); 
-
-            document.getElementById('syncStatus').textContent = 'Đang tải... ⏳';
-            document.getElementById('syncStatus').style.backgroundColor = '#f39c12';
-            document.getElementById('clearDateBtn').classList.add('hidden'); 
-
-            db.collection('dailyReports').doc(date).get()
-                .then(doc => {
-                    resetForm(false); 
-
-                    if (doc.exists) {
-                        const data = doc.data();
-                        
-                        if (isFromAdmin) {
-                            document.getElementById('clearDateBtn').classList.remove('hidden');
-                        }
-
-                        // Điền dữ liệu
-                        document.getElementById('revenue').value = formatNumber(data.revenue || 0);
-                        document.getElementById('cash').value = formatNumber(data.cash || 0);
-                        document.getElementById('transfer').value = formatNumber(data.transfer || 0);
-                        document.getElementById('shoppeFood').value = formatNumber(data.shoppeFood || 0);
-                        document.getElementById('grabFood').value = formatNumber(data.grabFood || 0);
-                        document.getElementById('beeFood').value = formatNumber(data.beeFood || 0);
-                        document.getElementById('otherIncome').value = formatNumber(data.otherIncome || 0);
-                        
-                        // Điền dữ liệu giảm giá nhân viên
-                        initStaffDiscountItems(); // Xóa và khởi tạo lại
-                        if (data.staffDiscounts && data.staffDiscounts.length > 0) {
-                            // Xóa phiếu mặc định
-                            const discountList = document.getElementById('staffDiscountList');
-                            discountList.innerHTML = '';
-                            staffDiscountCount = 0;
-                            
-                            // Thêm các phiếu từ dữ liệu
-                            data.staffDiscounts.forEach(item => {
-                                addStaffDiscountItem(item.name, item.bill, item.rate, false);
-                            });
-                        } else if (data.staffDiscount) {
-                            // Hỗ trợ dữ liệu cũ (chỉ 1 phiếu)
-                            addStaffDiscountItem(data.staffDiscount.name, data.staffDiscount.bill, 15, false);
-                        }
-
-                        const expenseList = document.getElementById('expenseList');
-                        expenseList.innerHTML = ''; 
-                        expenseCount = 0;
-                        if (data.expenses && data.expenses.length > 0) {
-                            data.expenses.forEach(item => {
-                                addExpenseItem(item.content, item.value, false); 
-                            });
-                        } else {
-                            initExpenseItems();
-                        }
-
-                        document.getElementById('syncStatus').textContent = `Đã tải dữ liệu thành công! (Cập nhật cuối bởi ${data.user})`;
-                        document.getElementById('syncStatus').style.backgroundColor = '#2ecc71';
-                        
-                        calculateTotals();
-                    } else {
-                        // Ngày chưa có dữ liệu
-                        resetForm(true);
-                        document.getElementById('syncStatus').textContent = 'Chưa có dữ liệu cho ngày này. Form đã được làm mới.';
-                        document.getElementById('syncStatus').style.backgroundColor = '#3498db';
-                    }
-                })
-                .catch(error => {
-                    alert('Lỗi khi tải dữ liệu: ' + error.message);
-                    console.error('Error loading document: ', error);
-                    document.getElementById('syncStatus').textContent = 'Lỗi kết nối Firebase ❌';
-                    document.getElementById('syncStatus').style.backgroundColor = '#e74c3c';
-                });
-        }
-        
-        function loadAdminReportList() {
-            if (!isAdmin) return;
-            const tbody = document.getElementById('adminReportTableBody');
-            tbody.innerHTML = '<tr><td colspan="4">Đang tải...</td></tr>';
-            db.collection('dailyReports').orderBy('date', 'desc').get()
-                .then(snapshot => {
-                    tbody.innerHTML = '';
-                    if (snapshot.empty) {
-                        tbody.innerHTML = '<tr><td colspan="4">Không có dữ liệu ghi chép nào.</td></tr>';
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        const timestamp = data.timestamp ? new Date(data.timestamp).toLocaleString('vi-VN') : 'Không rõ';
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${data.date}</td>
-                            <td>${data.user}</td>
-                            <td>${timestamp}</td>
-                            <td>
-                                <button class="btn btn-primary btn-sm" onclick="viewReportAsAdmin('${data.date}')">Sửa</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteReport('${data.date}')">Xóa</button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                });
-        }
-        
-        function viewReportAsAdmin(date) {
-            document.getElementById('dateSelectAdmin').value = date;
-            loadDataToForm(true); 
-            document.getElementById('dataEntryForm').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function deleteReport(date) {
-            if (!confirm(`Bạn có chắc chắn muốn xóa TOÀN BỘ ghi chép của ngày ${date} không?`)) return;
-            db.collection('dailyReports').doc(date).delete()
-                .then(() => {
-                    loadAdminReportList();
-                    alert('Đã xóa ghi chép thành công.');
-                    if (document.getElementById('selectedDate').value === date) {
-                        document.getElementById('dataEntryForm').classList.add('hidden');
-                        document.getElementById('syncStatus').textContent = 'Dữ liệu đã bị xóa. Vui lòng chọn ngày khác.';
-                        document.getElementById('syncStatus').style.backgroundColor = '#e74c3c';
-                    }
-                })
-                .catch(error => {
-                    alert('Lỗi khi xóa: ' + error.message);
-                });
-        }
-        
-        function clearDataForDate() {
-            const date = document.getElementById('selectedDate').value;
-            if (!date) {
-                alert('Vui lòng chọn ngày để xóa.');
+            const users = getUsers();
+            if (!users[phone]) {
+                alert(dictionary[currentLang].msgUserNotFound);
                 return;
             }
-            deleteReport(date);
+
+            checkAndResetPointExpiry(users[phone]);
+
+            const earnedPoints = Math.floor(amount / 100000); // 100.000 VND = 1 điểm
+            if (earnedPoints <= 0) {
+                alert("Số tiền hóa đơn chưa đủ 100.000 VNĐ!");
+                return;
+            }
+
+            users[phone].points += earnedPoints;
+            users[phone].lastPointUpdate = Date.now(); // Cập nhật thời gian tích điểm mới
+            users[phone].history.push({
+                date: new Date().toLocaleString(),
+                type: "EARN",
+                points: earnedPoints,
+                desc: `Mã GD: ${txId} (${amount.toLocaleString()} VND)`
+            });
+
+            saveUsers(users);
+            alert(dictionary[currentLang].msgAddPointsSuccess + ` (+${earnedPoints} pts)`);
+            document.getElementById('addPointsForm').reset();
+
+            if (currentSearchPhone === phone) renderCustomerView(phone);
         }
 
-        // --- XỬ LÝ LOGIN / LOGOUT ---
-        
-        function login() {
-            const employeeSelect = document.getElementById('employeeSelect');
-            currentUser = employeeSelect.value;
-            
-            if (currentUser) {
-                isAdmin = false;
-                document.getElementById('loginBlock').classList.add('hidden');
-                document.getElementById('appContainer').classList.remove('hidden');
-                document.getElementById('welcomeMessage').textContent = `Xin chào, Thu ngân ${currentUser}`;
-                
-                // Cấu hình giao diện Thu ngân
-                document.getElementById('adminReportManagement').style.display = 'none';
-                document.getElementById('dataEntryForm').classList.remove('hidden');
-                document.getElementById('clearDateBtn').classList.add('hidden'); 
+        // --- 5. CỔNG NHÂN VIÊN: QUẢN LÝ DANH MỤC QUÀ (CRUD) ---
+        function renderStaffRewards() {
+            const rewards = getRewards();
+            const tbody = document.getElementById('staffRewardTableBody');
+            tbody.innerHTML = '';
 
-                // Thu ngân chỉ được nhập ngày hiện tại
-                const today = new Date().toISOString().split('T')[0];
-                const dateInput = document.getElementById('selectedDate');
-                dateInput.value = today;
-                dateInput.readOnly = true; 
-
-                loadDataToForm(false); 
-            } else {
-                alert('Vui lòng chọn tên của bạn để đăng nhập.');
-            }
-        }
-
-        function adminLogin() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === ADMIN_PASSWORD) { 
-                currentUser = 'ADMIN';
-                isAdmin = true;
-                document.getElementById('loginBlock').classList.add('hidden');
-                document.getElementById('appContainer').classList.remove('hidden');
-                document.getElementById('welcomeMessage').textContent = `Chào mừng, Quản trị viên`;
-                
-                // Cấu hình giao diện Admin
-                document.getElementById('adminReportManagement').style.display = 'block';
-                document.getElementById('dataEntryForm').classList.add('hidden'); 
-                document.getElementById('clearDateBtn').classList.remove('hidden');
-                
-                const today = new Date().toISOString().split('T')[0];
-                const dateInput = document.getElementById('selectedDate');
-                dateInput.readOnly = false; 
-                dateInput.value = today;
-                document.getElementById('dateSelectAdmin').value = today;
-
-                loadAdminReportList();
-                populateAdminEmployeeList(); // Hiển thị danh sách NV Admin
-            } else {
-                alert('Mật khẩu Quản trị viên không chính xác.');
-            }
-        }
-        
-        function logout() {
-            window.location.reload();
-        }
-
-        // --- HÀM XUẤT ẢNH / ZALO SHARE MỚI ---
-        
-        // Hàm tiện ích: Chuyển đổi Data URL (Base64) thành Blob
-        function dataURLtoBlob(dataurl) {
-            const arr = dataurl.split(',');
-            const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            return new Blob([u8arr], { type: mime });
-        }
-
-        // Hàm Sao chép Ảnh vào Clipboard (Được gọi nội bộ)
-        function copyImageToClipboard() {
-            const exportedImage = document.getElementById('exportedImage');
-            if (!exportedImage || !exportedImage.src || exportedImage.src.length < 10) {
-                console.error('Không tìm thấy ảnh báo cáo để sao chép.');
-                return false; 
-            }
-
-            const dataURL = exportedImage.src;
-            const imageBlob = dataURLtoBlob(dataURL);
-            
-            // Logic sao chép
-            if (navigator.clipboard && navigator.clipboard.write) {
-                const item = new ClipboardItem({ [imageBlob.type]: imageBlob });
-                
-                navigator.clipboard.write([item])
-                    .then(() => {
-                        console.log('✅ Ảnh đã được sao chép vào bộ nhớ tạm thành công.');
-                    })
-                    .catch(err => {
-                        console.error('❌ Lỗi khi sao chép ảnh vào clipboard:', err);
-                        // Dù lỗi, ta vẫn tiếp tục mở Zalo và đã tải ảnh xuống
-                        alert('Lỗi: Trình duyệt chặn sao chép ảnh tự động. Ảnh vẫn được tải xuống và Zalo đã mở. Vui lòng gửi ảnh thủ công.');
-                    });
-                return true; 
-            } else {
-                console.warn('Trình duyệt không hỗ trợ sao chép ảnh tự động.');
-                return false;
-            }
-        }
-        
-        // HÀM GỘP BƯỚC: LƯU DỮ LIỆU, TẠO ẢNH, SAO CHÉP VÀ MỞ ZALO
-        function saveCopyAndShare() {
-            // 1. Lưu dữ liệu
-            saveData(); 
-
-            // 2. Định nghĩa Callback (hàm sẽ chạy sau khi html2canvas tạo ảnh xong)
-            const shareCallback = () => {
-                // 3. Tải ảnh xuống
-                downloadImage();
-
-                // 4. Sao chép ảnh vào clipboard
-                const isCopied = copyImageToClipboard();
-
-                // 5. Thông báo và mở Zalo
-                if(isCopied) {
-                     alert(`✅ Đã Lưu Dữ liệu, Tải ảnh xuống & Sao chép vào bộ nhớ tạm!\n\n🔔 VUI LÒNG MỞ ZALO và bấm DÁN (Paste) để gửi báo cáo.`);
-                } else {
-                    alert(`❌ Không thể sao chép ảnh vào bộ nhớ tạm. Ảnh đã được LƯU và TẢI XUỐNG.\n\n🔔 Vui lòng MỞ ZALO và gửi ảnh thủ công.`);
-                }
-
-                window.open('https://chat.zalo.me/', '_blank');
-                hideExportImage(); // Đóng container sau khi chia sẻ
-            };
-            
-            // 6. Gọi hàm tạo ảnh với callback
-            generateReportImage(shareCallback);
-        }
-
-        // Cập nhật generateReportImage để nhận thêm tham số callback
-        function generateReportImage(callback = null) {
-            const date = document.getElementById('selectedDate').value;
-            const reportContent = document.getElementById('reportContent');
-            const imageContainer = document.getElementById('exportImageContainer');
-            
-            const expenses = [];
-            for (let i = 1; i <= expenseCount; i++) {
-                const contentEl = document.getElementById(`expenseContent-${i}`);
-                const valueEl = document.getElementById(`expenseValue-${i}`);
-                if (contentEl && valueEl) {
-                    const numValue = parseCurrency(valueEl.value);
-                    if (contentEl.value.trim() || numValue > 0) {
-                        expenses.push({
-                            content: contentEl.value.trim() || `Mục chi #${i}`,
-                            formattedValue: valueEl.value
-                        });
-                    }
-                }
-            }
-            
-            // Xử lý hiển thị giảm giá nhân viên trong báo cáo ảnh
-            let staffDiscountsHtml = '';
-            let totalStaffDiscount = 0;
-            
-            for (let i = 1; i <= staffDiscountCount; i++) {
-                const nameElement = document.getElementById(`staffName-${i}`);
-                const billElement = document.getElementById(`staffBill-${i}`);
-                const rateElement = document.getElementById(`discountRate-${i}`);
-                const discountElement = document.getElementById(`staffDiscountAmount-${i}`);
-                
-                if (nameElement && billElement && rateElement && discountElement) {
-                    const name = nameElement.value.trim() || `Nhân viên #${i}`;
-                    const billValue = parseCurrency(billElement.value);
-                    const rate = parseFloat(rateElement.value) || 0;
-                    const discount = parseCurrency(discountElement.textContent);
-                    
-                    if (billValue > 0) {
-                        staffDiscountsHtml += `<tr style="color: #e74c3c;">
-                            <td style="padding: 5px 8px;">Giảm giá NV: ${name} (${rate}%)</td>
-                            <td style="padding: 5px 8px; text-align: right;">-${formatNumber(discount)}</td>
-                        </tr>`;
-                        totalStaffDiscount += discount;
-                    }
-                }
-            }
-            
-            if (staffDiscountsHtml === '') {
-                staffDiscountsHtml = `<tr><td colspan="2" style="padding: 5px 8px; text-align: center; color: #7f8c8d;">(Không có phiếu giảm giá nhân viên)</td></tr>`;
-            }
-
-            const totalIncomeFinalFormatted = document.getElementById('totalIncomeFinalInput').value;
-            const actualTotalFormatted = document.getElementById('actualTotal').value;
-            const totalAfterOpeningFormatted = document.getElementById('totalAfterOpening').value;
-            const totalAfterExpensesFormatted = document.getElementById('totalAfterExpensesInput').value;
-
-            let html = `
-                <div style="padding: 15px; background: white; max-width: 500px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px;">
-                    <h2 style="text-align: center; color: #3498db; margin-bottom: 15px; font-size: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">BÁO CÁO THU CHI HÀNG NGÀY</h2>
-                    <div style="margin-bottom: 15px; font-size: 14px; padding: 5px 0; border-bottom: 1px dashed #eee;">
-                        <strong>📅 Ngày:</strong> ${getDayOfWeek(date)}, ${date} 
-                    </div>
-                    <div style="margin-bottom: 20px; font-size: 14px; padding: 5px 0;">
-                        <strong>👤 Thu ngân:</strong> ${currentUser}
-                    </div>
-                    
-                    <table style="font-size: 14px; width: 100%; border-collapse: collapse;">
-                        <tbody>
-                            <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #3498db; text-align: left;">I. TIỀN THU VÀO TRONG CA</td></tr>
-                            <tr><td style="padding: 5px 8px;">Tiền mặt (Thu từ khách)</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('cash').value}</td></tr>
-                            <tr><td style="padding: 5px 8px;">Chuyển khoản (Thu từ khách)</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('transfer').value}</td></tr>
-                            <tr><td style="padding: 5px 8px;">- Shoppe Food</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('shoppeFood').value}</td></tr>
-                            <tr><td style="padding: 5px 8px;">- Grab Food</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('grabFood').value}</td></tr>
-                            <tr><td style="padding: 5px 8px;">- Bee Food</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('beeFood').value}</td></tr>
-                            <tr style="border-top: 1px dashed #ccc;"><td style="padding: 5px 8px; font-weight: bold;">Tổng Apps</td><td style="padding: 5px 8px; text-align: right; font-weight: bold;">${document.getElementById('totalApps').value}</td></tr>
-                            <tr><td style="padding: 5px 8px;">Thu khác</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('otherIncome').value}</td></tr>
-                            <tr style="background-color: #eaf7ed;"><td style="padding: 8px; font-weight: bold; color: #2ecc71;">TỔNG THU (Tiền mặt + Chuyển khoản)</td><td style="padding: 8px; text-align: right; font-weight: bold; color: #2ecc71;">${document.getElementById('totalIncome').value}</td></tr>
-                            
-                            <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #e74c3c; text-align: left;">II. CHI VÀ GIẢM TRỪ</td></tr>
-                            ${expenses.length > 0 ? expenses.map(item => `<tr><td style="padding: 5px 8px;">Chi: ${item.content}</td><td style="padding: 5px 8px; text-align: right; color: #e74c3c;">-${item.formattedValue}</td></tr>`).join('') : `<tr><td colspan="2" style="padding: 5px 8px; text-align: center; color: #7f8c8d;">(Không có khoản chi tiền mặt)</td></tr>`}
-                            ${staffDiscountsHtml}
-                            <tr style="background-color: #fcebeb;"><td style="padding: 8px; font-weight: bold; color: #e74c3c;">TỔNG CHI TIỀN MẶT</td><td style="padding: 8px; text-align: right; font-weight: bold; color: #e74c3c;">${document.getElementById('totalExpense').value}</td></tr>
-
-                            <tr><td colspan="2" style="padding: 8px; background-color: #f7f7f7; font-weight: bold; border-top: 2px solid #f39c12; text-align: left;">III. TỔNG KẾT & TIỀN MẶT</td></tr>
-                            <tr><td style="padding: 5px 8px; font-weight: 500;">Tiền Đầu ca (Cố định)</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${document.getElementById('openingCash').value}</td></tr>
-                            <tr><td style="padding: 5px 8px; font-weight: 500;">TỔNG TIỀN MẶT HIỆN CÓ</td><td style="padding: 5px 8px; text-align: right; font-weight: 500;">${totalAfterOpeningFormatted}</td></tr>
-                            <tr style="background-color: #d1ecf1;"><td style="padding: 8px; font-weight: bold; color: #0c5460;">TỔNG NHẬN TÀI KHOẢN (CK + Apps)</td><td style="padding: 8px; text-align: right; font-weight: bold; color: #0c5460;">${document.getElementById('totalReceived').value}</td></tr>
-                            
-                            <tr style="background-color: #fcebeb; border-top: 2px solid #e74c3c;"><td style="padding: 12px 8px; font-size: 18px; font-weight: bold; color: #e74c3c;">TỔNG THU NHẬP</td><td style="padding: 12px 8px; text-align: right; font-size: 18px; font-weight: bold; color: #e74c3c;">${totalIncomeFinalFormatted}</td></tr>
-                            
-                            <tr style="background-color: #d4edda; border-top: 2px solid #2ecc71;"><td style="padding: 12px 8px; font-size: 18px; font-weight: bold; color: #2ecc71;">TỔNG NHẬN SAU CÁC CHI PHÍ</td><td style="padding: 12px 8px; text-align: right; font-size: 18px; font-weight: bold; color: #2ecc71;">${totalAfterExpensesFormatted}</td></tr>
-                            
-                            <tr style="background-color: #fff3cd; border-top: 1px solid #f39c12;"><td style="padding: 10px 8px; font-size: 16px; font-weight: bold; color: #2980b9;">TIỀN MẶT CẦN CÓ (CUỐI CA)</td><td style="padding: 10px 8px; text-align: right; font-size: 16px; font-weight: bold; color: #2980b9;">${actualTotalFormatted}</td></tr>
-                            
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            reportContent.innerHTML = html;
-
-            // FIX: HIỂN THỊ CONTAINER TRƯỚC KHI CHỤP ẢNH
-            imageContainer.classList.remove('hidden');
-            reportContent.classList.remove('hidden'); 
-            // End FIX
-                // fix ảnh sau khi chọn chế độ chụp rõ nét (scale: 2)
-            html2canvas(reportContent, { scale: 2, useCORS: true }).then(canvas => {
-                const exportedImage = document.getElementById('exportedImage');
-                
-                // Ẩn nội dung HTML (đã dùng để chụp), chỉ hiển thị ảnh Canvas/Img
-                reportContent.classList.add('hidden');
-                
-                // Loại bỏ canvas cũ nếu có
-                const existingCanvas = document.getElementById('tempCanvas');
-                if(existingCanvas) existingCanvas.remove();
-                
-                // Thêm canvas mới vào và tạo Data URL
-                canvas.id = 'tempCanvas';
-                canvas.style.maxWidth = '100%';
-                canvas.style.height = 'auto';
-                imageContainer.prepend(canvas);
-                
-                exportedImage.src = canvas.toDataURL('image/png'); 
-                
-                // Chỉ scroll vào khung xem nếu không có callback (tức là chỉ bấm nút "Lưu và Xem Ảnh")
-                if (!callback) {
-                    imageContainer.scrollIntoView({ behavior: 'smooth' });
-                }
-
-                // GỌI CALLBACK NẾU CÓ (Để chạy logic chia sẻ Zalo)
-                if (callback && typeof callback === 'function') {
-                    callback();
-                }
+            rewards.forEach(item => {
+                const name = item.name[currentLang] || item.name['vi'];
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 text-base text-center">${item.icon}</td>
+                        <td class="p-2 font-medium">${name}</td>
+                        <td class="p-2 text-indigo-600 font-bold">${item.points} pts</td>
+                        <td class="p-2 text-center space-x-1 whitespace-nowrap">
+                            <button onclick="openRewardModal('${item.id}')" class="bg-amber-500 text-white px-2 py-1 rounded text-[10px] font-bold">${dictionary[currentLang].btnEdit}</button>
+                            <button onclick="deleteReward('${item.id}')" class="bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold">${dictionary[currentLang].btnDelete}</button>
+                        </td>
+                    </tr>
+                `;
             });
         }
-        // Sau cập nhật hiển thị rõ hơn các truy vấn liên quan đến ảnh
-        // Cập nhật: Hàm này giờ chỉ để Lưu dữ liệu và hiển thị khung xem ảnh
-        function saveAndExport() {
-            saveData();
-            // generateReportImage() giờ nhận tham số callback, gọi không tham số sẽ không chạy logic chia sẻ Zalo
-            generateReportImage(); 
-        }
-        
-        function downloadImage() {
-            const exportedImage = document.getElementById('exportedImage');
-            const date = document.getElementById('selectedDate').value;
-            const fileName = `BaoCaoThuChi_${date}_${currentUser}.png`;
 
-            const a = document.createElement('a');
-            a.href = exportedImage.src;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
+        function openRewardModal(id = null) {
+            const modal = document.getElementById('rewardModal');
+            const form = document.getElementById('rewardForm');
+            form.reset();
 
-        function hideExportImage() {
-            document.getElementById('exportImageContainer').classList.add('hidden');
-            document.getElementById('reportContent').classList.remove('hidden');
-            const canvas = document.getElementById('tempCanvas');
-            if(canvas) canvas.remove();
-        }
-
-
-        // --- EXCEL EXPORT (Đã cập nhật) ---
-        // Hàm tiện ích: Lấy tên ngày trong tuần từ ngày (YYYY-MM-DD)
-
-        function exportReportsByDateRange() {
-            if (!isAdmin) return;
-            const startDate = document.getElementById('startDateAdmin').value;
-            const endDate = document.getElementById('endDateAdmin').value;
-
-            if (!startDate || !endDate) {
-                alert('Vui lòng chọn cả Ngày Bắt Đầu và Ngày Kết Thúc.');
-                return;
-            }
-            if (startDate > endDate) {
-                alert('Ngày bắt đầu không được lớn hơn Ngày kết thúc.');
-                return;
-            }
-            
-            document.getElementById('exportBtn').textContent = 'Đang tải...';
-            document.getElementById('exportBtn').disabled = true;
-
-            db.collection('dailyReports')
-                .where('date', '>=', startDate)
-                .where('date', '<=', endDate)
-                .orderBy('date')
-                .get()
-                .then(snapshot => {
-                    if (snapshot.empty) {
-                        alert('Không tìm thấy báo cáo nào trong khoảng ngày đã chọn.');
-                        return;
-                    }
-                    
-                    const wb = XLSX.utils.book_new();
-                    
-                    // 1. Dữ liệu cho SHEET TỔNG HỢP (Giá trị số - Excel)
-                    const summaryHeader = ['Ngày', 'Thứ', 'Nhân viên', 'Tiền mặt', 'Chuyển khoản', 'Tổng Thu (TM+CK)', 'Tổng Chi', 'Giảm Giá NV', 'Tổng Giảm Trừ', 'Tổng Apps', 'Thu Khác', 'TỔNG THU NHẬP', 'TỔNG NHẬN SAU CHI PHÍ'];
-                    const summaryData = [summaryHeader];
-
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        
-                        // Tính tổng giảm giá nhân viên từ tất cả các phiếu
-                        let totalStaffDiscountValue = 0;
-                        if (data.staffDiscounts && data.staffDiscounts.length > 0) {
-                            data.staffDiscounts.forEach(item => {
-                                totalStaffDiscountValue += (item.discount || 0);
-                            });
-                        } else if (data.staffDiscount) {
-                            // Hỗ trợ dữ liệu cũ (chỉ 1 phiếu)
-                            totalStaffDiscountValue = data.staffDiscount.discount || 0;
-                        }
-                        
-                        const totalDeductions = (data.totalExpense || 0); // Giảm giá NV không tính vào Total Deductions
-
-                        summaryData.push([
-                            data.date,
-                            getDayOfWeek(data.date),
-                            data.user,
-                            (data.cash || 0),
-                            (data.transfer || 0),
-                            (data.totalIncome || 0),
-                            (data.totalExpense || 0),
-                            totalStaffDiscountValue,
-                            totalDeductions,
-                            (data.totalApps || 0),
-                            (data.otherIncome || 0),
-                            (data.totalIncomeFinal || 0), // TỔNG THU NHẬP (Công thức +)
-                            (data.totalAfterExpenses || 0) // TỔNG NHẬN SAU CHI PHÍ (Công thức -)
-                        ]);
-
-                        // 2. Tạo SHEET CHI TIẾT cho từng ngày 
-                        const dateData = [
-                            ['BÁO CÁO CHI TIẾT NGÀY', data.date],
-                            ['Thu ngân', data.user],
-                            ['', ''],
-                            ['KHOẢN MỤC', 'SỐ TIỀN (VNĐ)'],
-                            ['I. THU'],
-                            ['1. Doanh thu (Tổng tiền hàng)', formatNumber(data.revenue)],
-                            ['2. Tiền mặt (Thu từ khách)', formatNumber(data.cash)],
-                            ['3. Chuyển khoản (Thu từ khách)', formatNumber(data.transfer)],
-                            ['4. Tổng Apps (Shopee, Grab, Bee)', formatNumber(data.totalApps)],
-                            ['5. Thu khác', formatNumber(data.otherIncome)],
-                            ['=> TỔNG THU (Tiền mặt + Chuyển khoản)', formatNumber(data.totalIncome)],
-                            ['', ''],
-                            ['II. CHI & GIẢM TRỪ'],
-                        ];
-
-                        data.expenses.forEach((item, index) => {
-                            dateData.push([`1. Chi ${index + 1}: ${item.content}`, formatNumber(item.value)]);
-                        });
-                        dateData.push(['=> TỔNG CHI TIỀN MẶT', formatNumber(data.totalExpense)]);
-                        
-                        // Hiển thị các phiếu giảm giá nhân viên
-                        if (data.staffDiscounts && data.staffDiscounts.length > 0) {
-                            data.staffDiscounts.forEach((item, index) => {
-                                dateData.push([`2. Giảm giá NV ${index + 1}: ${item.name} (${item.rate}%)`, formatNumber(item.discount)]);
-                            });
-                        } else if (data.staffDiscount) {
-                            dateData.push([`2. Giảm giá nhân viên (${data.staffDiscount.name || ''})`, formatNumber(data.staffDiscount.discount)]);
-                        }
-
-                        dateData.push(['', ''], ['III. TỔNG KẾT']);
-                        dateData.push(['1. Đầu ca', formatNumber(OPENING_CASH)]);
-                        dateData.push(['2. TỔNG NHẬN TÀI KHOẢN (CK + Apps)', formatNumber(data.totalReceived)]);
-                        dateData.push(['3. TỔNG THU NHẬP', formatNumber(data.totalIncomeFinal)]); 
-                        dateData.push(['4. TỔNG NHẬN SAU CÁC CHI PHÍ', formatNumber(data.totalAfterExpenses)]);
-                        dateData.push(['5. TIỀN MẶT CẦN CÓ (CUỐI CA)', formatNumber(data.actualTotal)]); 
-
-                        const dateSheet = XLSX.utils.aoa_to_sheet(dateData);
-                        dateSheet['!cols'] = [{ wch: 40 }, { wch: 20 }];
-                        XLSX.utils.book_append_sheet(wb, dateSheet, data.date);
-                    });
-                    
-                    // Thêm Sheet TỔNG HỢP vào đầu tiên
-                    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-                    summarySheet['!cols'] = [
-                        { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
-                        { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, 
-                        { wch: 15 }, { wch: 20 }, { wch: 20 } 
-                    ];
-                    XLSX.utils.book_append_sheet(wb, summarySheet, 'TỔNG HỢP');
-                    wb.SheetNames.unshift(wb.SheetNames.pop());
-
-
-                    XLSX.writeFile(wb, `Bao_Cao_Tong_Hop_${startDate}_den_${endDate}.xlsx`);
-                    alert('Đã xuất báo cáo Excel thành công.');
-                })
-                .catch(error => {
-                    console.error('Export error:', error);
-                    alert('Lỗi khi xuất Excel: ' + error.message);
-                })
-                .finally(() => {
-                    document.getElementById('exportBtn').textContent = 'Tải báo cáo Excel';
-                    document.getElementById('exportBtn').disabled = false;
-                });
-        }
-        
-        // --- KHỞI TẠO ---
-        
-        function resetForm(resetExpense = true) {
-            const inputs = document.querySelectorAll('#dataEntryForm input[type="text"]');
-            inputs.forEach(input => {
-                if (input.id !== 'openingCash') { 
-                    input.value = '0';
+            if (id) {
+                const rewards = getRewards();
+                const item = rewards.find(r => r.id == id);
+                if (item) {
+                    document.getElementById('modalRewardId').value = item.id;
+                    document.getElementById('modalIcon').value = item.icon;
+                    document.getElementById('modalNameVi').value = item.name.vi || '';
+                    document.getElementById('modalNameEn').value = item.name.en || '';
+                    document.getElementById('modalNameTh').value = item.name.th || '';
+                    document.getElementById('modalPoints').value = item.points;
+                    document.getElementById('modalTitle').innerText = dictionary[currentLang].modalEditTitle;
                 }
-            });
-            
-            // Reset phần giảm giá nhân viên
-            initStaffDiscountItems();
-            
-            if(resetExpense) {
-                initExpenseItems();
+            } else {
+                document.getElementById('modalRewardId').value = '';
+                document.getElementById('modalTitle').innerText = dictionary[currentLang].modalAddTitle;
             }
-            calculateTotals();
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
-        
-        window.onload = function() {
-            loadEmployees(); // Tải danh sách nhân viên từ Firebase
-            initStaffDiscountItems(); // Khởi tạo phiếu giảm giá
 
-            // Khởi tạo hiệu ứng nền 3D
-            try {
-                VANTA.BIRDS({
-                    el: "#vanta-bg",
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.0,
-                    scaleMobile: 1.0,
-                    backgroundColor: 0x1a1a2e, // Nền tối
-                    color1: 0x8955ff, // Màu chim 1 (tím)
-                    color2: 0x23a6d5, // Màu chim 2 (xanh)
-                    birdSize: 1.5,
-                    wingSpan: 20.0,
-                    speedLimit: 5.0,
-                    separation: 20.0,
-                    alignment: 20.0,
-                    cohesion: 20.0,
+        function closeRewardModal() {
+            const modal = document.getElementById('rewardModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function handleSaveReward(e) {
+            e.preventDefault();
+            const id = document.getElementById('modalRewardId').value;
+            const icon = document.getElementById('modalIcon').value.trim();
+            const nameVi = document.getElementById('modalNameVi').value.trim();
+            const nameEn = document.getElementById('modalNameEn').value.trim();
+            const nameTh = document.getElementById('modalNameTh').value.trim();
+            const points = parseInt(document.getElementById('modalPoints').value);
+
+            let rewards = getRewards();
+
+            if (id) {
+                // Edit
+                rewards = rewards.map(r => r.id == id ? {
+                    id: id,
+                    icon: icon,
+                    name: { vi: nameVi, en: nameEn, th: nameTh },
+                    points: points
+                } : r);
+            } else {
+                // Add new
+                rewards.push({
+                    id: Date.now().toString(),
+                    icon: icon,
+                    name: { vi: nameVi, en: nameEn, th: nameTh },
+                    points: points
                 });
-            } catch (e) {
-                console.error("Lỗi khởi tạo Vanta.js:", e);
-                // Fallback nếu lỗi
-                document.body.style.background = 'linear-gradient(-45deg, #e73c7e, #ee7752, #23a6d5, #23d5ab)';
-                document.body.style.backgroundSize = '400% 400%';
-                document.body.style.animation = 'gradient-animation 15s ease infinite';
             }
-        };
-        
 
+            saveRewards(rewards);
+            closeRewardModal();
+        }
+
+        function deleteReward(id) {
+            if (!confirm(dictionary[currentLang].msgConfirmDelete)) return;
+            let rewards = getRewards();
+            rewards = rewards.filter(r => r.id != id);
+            saveRewards(rewards);
+        }
+
+        // --- 6. CỔNG NHÂN VIÊN: CỘNG/TRỪ ĐIỂM ADMIN ---
+        function handleAdjustPoints(e) {
+            e.preventDefault();
+            const phone = document.getElementById('adjPhone').value.trim();
+            const type = document.getElementById('adjType').value;
+            const pointsVal = parseInt(document.getElementById('adjPoints').value);
+            const reason = document.getElementById('adjReason').value.trim();
+
+            const users = getUsers();
+            if (!users[phone]) {
+                alert(dictionary[currentLang].msgUserNotFound);
+                return;
+            }
+
+            checkAndResetPointExpiry(users[phone]);
+
+            const adjustedPoints = type === 'add' ? pointsVal : -pointsVal;
+
+            if (type === 'deduct' && users[phone].points < pointsVal) {
+                alert("Điểm hiện tại không đủ để trừ!");
+                return;
+            }
+
+            users[phone].points += adjustedPoints;
+            users[phone].lastPointUpdate = Date.now();
+            users[phone].history.push({
+                date: new Date().toLocaleString(),
+                type: "ADJUST",
+                points: adjustedPoints,
+                desc: `${reason}`
+            });
+
+            saveUsers(users);
+            alert(dictionary[currentLang].msgAdjSuccess);
+            document.getElementById('adjustPointsForm').reset();
+
+            if (currentSearchPhone === phone) renderCustomerView(phone);
+        }
     </script>
 </body>
 </html>
