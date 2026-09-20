@@ -10,6 +10,32 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
+        :root {
+            --brand: #0f766e;
+            --brand-dark: #115e59;
+            --brand-soft: #ecfdf5;
+            --ink: #1f2937;
+            --canvas: #f1f5f9;
+            --line: #dbe4ea;
+        }
+
+        html { background: var(--canvas); }
+        body { background: var(--canvas); color: var(--ink); }
+        button, input, select { -webkit-tap-highlight-color: transparent; }
+        button { touch-action: manipulation; }
+        table { min-width: 520px; }
+        header { background: linear-gradient(135deg, var(--brand-dark), var(--brand)) !important; }
+        header .bg-indigo-700 { background: rgba(15, 118, 110, .78) !important; }
+        header .border-indigo-500 { border-color: rgba(255, 255, 255, .35) !important; }
+        .tab-btn { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
+        input:focus, select:focus { border-color: var(--brand) !important; --tw-ring-color: rgba(15, 118, 110, .25) !important; }
+        .bg-indigo-600 { background-color: var(--brand) !important; }
+        .active\:bg-indigo-700:active { background-color: var(--brand-dark) !important; }
+        .text-indigo-600, .text-indigo-700 { color: var(--brand) !important; }
+        .border-indigo-600 { border-color: var(--brand) !important; }
+        .bg-indigo-50 { background-color: var(--brand-soft) !important; }
+        .bg-gradient-to-r.from-indigo-600 { background: linear-gradient(135deg, #115e59, #0f766e) !important; }
+
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
@@ -24,10 +50,18 @@
         .cashier-only { display: none !important; }
         .cashier-only.cashier-visible { display: block !important; }
         @media (max-width: 640px) {
-            header .max-w-4xl { align-items: flex-start; gap: 8px; flex-direction: column; }
-            main { margin-top: 10px; }
-            .tab-btn { min-height: 46px; white-space: nowrap; }
-            input, select, button { min-height: 42px; }
+            body { padding-bottom: 24px; }
+            header .max-w-4xl { align-items: stretch; gap: 10px; flex-direction: column; }
+            header .max-w-4xl > div { justify-content: space-between; }
+            main { margin-top: 10px; padding-left: 10px; padding-right: 10px; }
+            main > .flex { border-radius: 12px; }
+            .tab-btn { flex: 0 0 auto; min-height: 46px; white-space: nowrap; }
+            .tab-content { padding: 16px !important; border-radius: 14px; }
+            input, select, button { min-height: 44px; }
+            table { font-size: 12px; }
+            .overflow-x-auto { overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+            #custInfoArea .grid { gap: 18px; }
+            #custInfoArea .bg-gradient-to-r { padding: 16px; }
         }
     </style>
 </head>
@@ -556,6 +590,9 @@
         let rewardsCache = JSON.parse(localStorage.getItem('loyalty_rewards') || 'null');
         let cashierAccounts = JSON.parse(localStorage.getItem('loyalty_cashiers') || '[]');
         let currentSession = null;
+        let stopUsersSync = null;
+        let stopRewardsSync = null;
+        let stopCashiersSync = null;
 
         function getTodayKey() {
             const now = new Date();
@@ -688,8 +725,9 @@
         function saveUsers(users) {
             usersCache = users;
             localStorage.setItem('loyalty_users', JSON.stringify(users));
-            syncUsersToFirestore(users).catch(error => {
+            return syncUsersToFirestore(users).catch(error => {
                 console.error('Không thể lưu người dùng lên Firestore:', error);
+                throw error;
             });
         }
 
@@ -709,6 +747,55 @@
             });
             renderStaffRewards();
             if (currentSearchPhone) renderCustomerView(currentSearchPhone);
+        }
+
+        function saveCashierAccounts() {
+            localStorage.setItem('loyalty_cashiers', JSON.stringify(cashierAccounts));
+            return db.collection('settings').doc('cashiers').set({
+                items: cashierAccounts,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        function refreshVisibleData() {
+            renderStaffRewards();
+            if (isLoggedIn()) {
+                renderCustomerDirectory();
+                if (currentSearchPhone) renderRealtime(currentSearchPhone);
+            } else if (currentSearchPhone && usersCache[currentSearchPhone]) {
+                renderCustomerView(currentSearchPhone);
+            }
+        }
+
+        function startRealtimeSync() {
+            stopUsersSync = db.collection('users').onSnapshot(snapshot => {
+                const remoteUsers = {};
+                snapshot.forEach(doc => { remoteUsers[doc.id] = doc.data(); });
+                usersCache = remoteUsers;
+                localStorage.setItem('loyalty_users', JSON.stringify(usersCache));
+                refreshVisibleData();
+            }, error => console.error('Không thể đồng bộ khách hàng theo thời gian thực:', error));
+
+            stopRewardsSync = db.collection('settings').doc('rewards').onSnapshot(snapshot => {
+                const items = snapshot.exists ? snapshot.data().items : null;
+                if (!Array.isArray(items)) return;
+                rewardsCache = items;
+                localStorage.setItem('loyalty_rewards', JSON.stringify(items));
+                refreshVisibleData();
+            }, error => console.error('Không thể đồng bộ danh mục quà theo thời gian thực:', error));
+
+            stopCashiersSync = db.collection('settings').doc('cashiers').onSnapshot(snapshot => {
+                const remoteCashiers = snapshot.exists ? snapshot.data().items : null;
+                if (Array.isArray(remoteCashiers)) {
+                    cashierAccounts = remoteCashiers;
+                    localStorage.setItem('loyalty_cashiers', JSON.stringify(cashierAccounts));
+                    renderCashierList();
+                    renderLoginFields();
+                    renderCustomerDirectory();
+                } else if (cashierAccounts.length) {
+                    saveCashierAccounts().catch(error => console.error('Không thể lưu tài khoản thu ngân:', error));
+                }
+            }, error => console.error('Không thể đồng bộ tài khoản thu ngân theo thời gian thực:', error));
         }
 
         function renderCashierList() {
@@ -731,7 +818,7 @@
                 return;
             }
             cashierAccounts.push({ id: Date.now().toString(), name });
-            localStorage.setItem('loyalty_cashiers', JSON.stringify(cashierAccounts));
+            saveCashierAccounts().catch(error => console.error('Không thể lưu tài khoản thu ngân:', error));
             document.getElementById('cashierForm').reset();
             renderCashierList();
         }
@@ -739,7 +826,7 @@
         function deleteCashier(id) {
             if (!isAdmin() || !confirm('Xóa tài khoản Thu ngân này?')) return;
             cashierAccounts = cashierAccounts.filter(account => account.id !== id);
-            localStorage.setItem('loyalty_cashiers', JSON.stringify(cashierAccounts));
+            saveCashierAccounts().catch(error => console.error('Không thể lưu tài khoản thu ngân:', error));
             renderCashierList();
         }
 
@@ -1027,6 +1114,7 @@
 
                 renderStaffRewards();
                 syncAllDataToGoogleSheets();
+                startRealtimeSync();
                 if (currentSearchPhone && usersCache[currentSearchPhone]) {
                     renderCustomerView(currentSearchPhone);
                 }
