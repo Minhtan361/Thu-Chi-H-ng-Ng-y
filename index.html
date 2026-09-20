@@ -3,18 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Loyalty Program - Tích Điểm Thành Viên</title>
-    <!-- Tailwind CSS CDN -->
+    <title>THAI THAE - Tích Điểm Thành Viên</title>
+    <!-- tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase Web SDK -->
+    <!-- firebase  -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        /* Tối ưu cuộn ngang cho tab trên điện thoại */
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .auth-only { display: none !important; }
+        .auth-only.auth-visible { display: block !important; }
+        .tab-content.auth-only.auth-visible { display: none !important; }
+        .tab-content.auth-only.auth-visible.active { display: block !important; }
+        .admin-only { display: none !important; }
+        .admin-only.admin-visible { display: block !important; }
+        .cashier-only { display: none !important; }
+        .cashier-only.cashier-visible { display: block !important; }
+        @media (max-width: 640px) {
+            header .max-w-4xl { align-items: flex-start; gap: 8px; flex-direction: column; }
+            main { margin-top: 10px; }
+            .tab-btn { min-height: 46px; white-space: nowrap; }
+            input, select, button { min-height: 42px; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen text-gray-800 pb-12">
@@ -24,6 +38,8 @@
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
             <h1 class="text-base sm:text-xl font-bold truncate pr-2" data-i18n="appTitle">Hệ Thống Tích Điểm</h1>
             <div class="flex items-center gap-1 sm:gap-2">
+                <span id="authStatus" class="text-xs hidden sm:inline" data-i18n="guestLabel">Khách hàng</span>
+                <button id="authButton" type="button" onclick="openLoginModal()" class="bg-white text-indigo-700 rounded text-xs sm:text-sm px-2 py-1 font-bold" data-i18n="loginButton">Đăng nhập</button>
                 <span class="text-xs hidden sm:inline" data-i18n="langLabel">Ngôn ngữ:</span>
                 <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-indigo-700 text-white rounded text-xs sm:text-sm px-2 py-1 border border-indigo-500 focus:outline-none font-medium">
                     <option value="vi">🇻🇳 Việt</option>
@@ -38,42 +54,18 @@
 
        
         <div class="flex border-b border-gray-200 mb-4 bg-white rounded-lg shadow-sm overflow-x-auto no-scrollbar">
-            <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex-1 min-w-[110px] py-3 px-2 text-center text-xs sm:text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50" data-i18n="tabRegister">Đăng Ký</button>
-            <button onclick="switchTab('customer')" id="tab-customer" class="tab-btn flex-1 min-w-[110px] py-3 px-2 text-center text-xs sm:text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-indigo-600" data-i18n="tabCustomer">Khách Hàng</button>
-            <button onclick="switchTab('staff')" id="tab-staff" class="tab-btn flex-1 min-w-[130px] py-3 px-2 text-center text-xs sm:text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-indigo-600" data-i18n="tabStaff">Quản Lý / NV</button>
-        </div>
-
-        <!--  ĐĂNG KÝ THÀNH VIÊN -->
-        <div id="view-register" class="tab-content active bg-white p-4 sm:p-6 rounded-xl shadow-sm max-w-md mx-auto">
-            <h2 class="text-lg font-bold mb-3 text-gray-800" data-i18n="regTitle">THAI THAE Xin Chào</h2>
-            <form id="regForm" onsubmit="handleRegister(event)">
-                <div class="mb-3">
-                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="phoneLabel">Số điện thoại:</label>
-                    <input type="tel" id="regPhone" required placeholder="0901234567" class="w-full text-base px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 mb-1" data-i18n="nameLabel">Họ Tên:</label>
-                    <input type="text" id="regName" required placeholder="Nguyễn Văn A" class="w-full text-base px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 active:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-sm transition text-sm" data-i18n="btnRegister">Đăng Ký Ngay</button>
-            </form>
-
-            <div id="regResult" class="mt-4 hidden p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p class="text-green-700 font-bold text-sm" data-i18n="regSuccess">Đăng ký thành công!</p>
-                <div class="mt-2 text-xs sm:text-sm text-gray-700 bg-white p-3 border rounded shadow-inner">
-                    <p class="font-bold text-indigo-600" data-i18n="couponGift">🎁 Quà tặng chào mừng:</p>
-                    <p data-i18n="couponDesc">Uu đãi: Miễn phí 1 ly nước bất kỳ cho thành viên mới</p>
-                    <p class="text-xs text-gray-500 mt-1"><span data-i18n="expiryLabel">Hạn sử dụng (30 ngày) tính từ thời điểm đăng ký:</span> <span id="couponExpiry" class="font-semibold text-gray-700"></span></p>
-                </div>
-            </div>
+            <button onclick="switchTab('customer')" id="tab-customer" class="tab-btn flex-1 min-w-[130px] py-3 px-2 text-center text-xs sm:text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50" data-i18n="tabCustomer">Khách hàng</button>
+            <button onclick="switchTab('customer-list')" id="tab-customer-list" class="tab-btn auth-only flex-1 min-w-[150px] py-3 px-2 text-center text-xs sm:text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-indigo-600" data-i18n="tabCustomerList">Danh sách khách hàng</button>
+            <button onclick="switchTab('realtime')" id="tab-realtime" class="tab-btn auth-only flex-1 min-w-[120px] py-3 px-2 text-center text-xs sm:text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-indigo-600" data-i18n="tabRealtime">REAL-TIME</button>
+            <button onclick="switchTab('management')" id="tab-management" class="tab-btn auth-only admin-only flex-1 min-w-[110px] py-3 px-2 text-center text-xs sm:text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-indigo-600" data-i18n="tabManagement">Quản lý</button>
         </div>
 
         <!-- KHÁCH  (TRA CỨU & ĐỔI QUÀ) -->
-        <div id="view-customer" class="tab-content bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+        <div id="view-customer" class="tab-content active bg-white p-4 sm:p-6 rounded-xl shadow-sm">
             <h2 class="text-lg font-bold mb-3 text-gray-800" data-i18n="custTitle">Tra Cứu Điểm & Đổi Quà</h2>
             
             <div class="flex gap-2 mb-4">
-                <input type="tel" id="custPhoneSearch" placeholder="Nhập số điện thoại..." class="flex-1 text-base px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="tel" id="custPhoneSearch" data-i18n-placeholder="phoneSearchPlaceholder" placeholder="Nhập số điện thoại..." class="flex-1 text-base px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                 <button onclick="searchCustomer()" class="bg-indigo-600 active:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm" data-i18n="btnSearch">Tra cứu</button>
             </div>
 
@@ -92,7 +84,7 @@
                         </div>
                     </div>
                     <div class="mt-3 pt-2 border-t border-indigo-400/40 text-[11px] opacity-90 flex justify-between items-center">
-                        <span>⏳ <span data-i18n="pointsExpiryNote">Điểm sẽ tự động hết hạn sau 30 ngày</span></span>
+                        <span>♾️ <span data-i18n="pointsExpiryNote">Điểm không giới hạn thời gian</span></span>
                         <span id="custExpiryDate" class="font-medium text-yellow-200"></span>
                     </div>
                 </div>
@@ -108,7 +100,7 @@
 
                     <!-- Lịch Sử Điểm -->
                     <div>
-                        <h3 class="text-sm font-bold mb-2 text-gray-800" data-i18n="historyTitle">Lịch Sử Điểm (30 Ngày)</h3>
+                        <h3 class="text-sm font-bold mb-2 text-gray-800" data-i18n="historyTitle">Lịch Sử Điểm</h3>
                         <div class="border rounded-lg overflow-hidden max-h-60 overflow-y-auto">
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-gray-100 text-gray-700 border-b sticky top-0">
@@ -126,38 +118,46 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
-        <!-- 3. TAB CỔNG QUẢN LÝ / NHÂN VIÊN -->
-        <div id="view-staff" class="tab-content bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-6">
-            <h2 class="text-lg font-bold text-gray-800" data-i18n="staffTitle">Cổng Thông Tin Nhân Viên & Quản Lý</h2>
-
-            <!-- A. Tích Điểm Hóa Đơn -->
-            <div class="border p-4 rounded-xl bg-gray-50">
-                <h3 class="text-sm sm:text-base font-bold mb-3 text-indigo-700" data-i18n="addPointsTitle">Tích Điểm Hóa Đơn (100.000 VNĐ = 1 điểm)</h3>
-                <form id="addPointsForm" onsubmit="handleAddPoints(event)" class="space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="phoneLabel">SĐT Khách:</label>
-                            <input type="tel" id="staffPhone" required class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="transIdLabel">Mã GD (TxID):</label>
-                            <input type="text" id="staffTxId" required placeholder="TX1029" class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="amountLabel">Tổng tiền (VND):</label>
-                            <input type="number" id="staffAmount" min="0" step="1000" required placeholder="250000" class="w-full text-base px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-indigo-600 active:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm" data-i18n="btnAddPoints">Cộng Điểm Tự Động</button>
+        <div id="view-customer-list" class="tab-content auth-only bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-6">
+            <h2 class="text-lg font-bold text-gray-800" data-i18n="tabCustomerList">Danh sách khách hàng</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input id="customerListSearch" list="customerPhoneOptions" oninput="searchCustomerList()" data-i18n-placeholder="phoneSearchPlaceholder" placeholder="Tra cứu số điện thoại" class="sm:col-span-2 text-base px-3 py-2 border rounded-lg outline-none">
+                <button type="button" onclick="focusCustomerListPhone()" class="bg-indigo-600 text-white font-bold py-2 rounded-lg text-sm" data-i18n="btnSearch">Tra cứu</button>
+            </div>
+            <datalist id="customerPhoneOptions"></datalist>
+            <div class="overflow-x-auto"><table class="w-full text-left text-xs bg-white border rounded-lg"><thead class="bg-gray-100"><tr><th class="p-2">Tên khách</th><th class="p-2">Số điện thoại</th><th class="p-2">Tổng điểm</th><th class="p-2">Tra cứu</th></tr></thead><tbody id="customerDirectoryBody"></tbody></table></div>
+            <div class="border-t pt-5">
+                <h3 class="text-base font-bold mb-3" data-i18n="registerMemberTitle">Đăng ký thành viên</h3>
+                <form id="staffRegisterForm" onsubmit="handleStaffRegister(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <select id="registerCashier" required class="text-base px-3 py-2 border rounded-lg outline-none"></select>
+                    <input type="text" id="staffRegisterName" required data-i18n-placeholder="customerNamePlaceholder" placeholder="Khách hàng" class="text-base px-3 py-2 border rounded-lg outline-none">
+                    <input type="tel" id="staffRegisterPhone" required data-i18n-placeholder="phonePlaceholder" placeholder="Số điện thoại" class="text-base px-3 py-2 border rounded-lg outline-none">
+                    <button type="submit" class="sm:col-span-3 bg-indigo-600 text-white font-bold py-2 rounded-lg text-sm" data-i18n="registerCustomer">Đăng ký khách</button>
                 </form>
             </div>
+        </div>
 
-            <!-- B. QUẢN LÝ DANH MỤC MÓN ĐỔI QUÀ (CRUD) -->
-            <div class="border p-4 rounded-xl bg-gray-50">
+        <div id="view-realtime" class="tab-content auth-only bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-5">
+            <h2 class="text-lg font-bold text-gray-800" data-i18n="tabRealtime">REAL-TIME</h2>
+            <form onsubmit="handleRealtimeSearch(event)" class="flex flex-col sm:flex-row gap-2">
+                <input id="realtimePhone" list="customerPhoneOptions" required data-i18n-placeholder="realtimePhonePlaceholder" placeholder="Số điện thoại khách" class="flex-1 text-base px-3 py-2 border rounded-lg outline-none">
+                <button type="submit" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-lg text-sm" data-i18n="btnSearch">Tra cứu</button>
+            </form>
+            <div id="realtimePointsForm" class="border-t pt-5"></div>
+            <div id="realtimeSummary" class="hidden"></div>
+        </div>
+
+        
+        <div id="view-management" class="tab-content auth-only bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-6">
+            <h2 class="text-lg font-bold text-gray-800" data-i18n="staffTitle">Thông Tin Nhân Viên</h2>
+
+            
+            <div class="border p-4 rounded-xl bg-gray-50 admin-only">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm sm:text-base font-bold text-indigo-700" data-i18n="manageRewardsTitle">Quản Lý Món Đổi Điểm</h3>
+                    <h3 class="text-sm sm:text-base font-bold text-indigo-700" data-i18n="manageRewardsTitle">Món Đổi Điểm</h3>
                     <button onclick="openRewardModal()" class="bg-green-600 active:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1">
                         <span>+</span> <span data-i18n="btnAddReward">Thêm món</span>
                     </button>
@@ -180,8 +180,8 @@
             </div>
 
             <!-- Chỉnh Sửa Điểm Trực Tiếp -->
-            <div class="border p-4 rounded-xl bg-gray-50">
-                <h3 class="text-sm sm:text-base font-bold mb-3 text-amber-700" data-i18n="adjustTitle">Điều Chỉnh Điểm Trực Tiếp (Admin)</h3>
+            <div class="border p-4 rounded-xl bg-gray-50 admin-only">
+                <h3 class="text-sm sm:text-base font-bold mb-3 text-amber-700" data-i18n="adjustTitle">Chỉnh Điểm Trực Tiếp (Admin)</h3>
                 <form id="adjustPointsForm" onsubmit="handleAdjustPoints(event)" class="space-y-3">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
@@ -207,8 +207,54 @@
                     <button type="submit" class="w-full bg-amber-600 active:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-sm" data-i18n="btnAdjust">Cập Nhật Điểm</button>
                 </form>
             </div>
+
+            <div id="cashierManagement" class="admin-only border p-4 rounded-xl bg-blue-50">
+                <h3 class="text-sm sm:text-base font-bold mb-3 text-blue-700" data-i18n="cashierManagementTitle">Quản lý Thu ngân</h3>
+                <form id="cashierForm" onsubmit="handleAddCashier(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input id="cashierName" required data-i18n-placeholder="cashierNamePlaceholder" placeholder="Tên Thu ngân" class="w-full text-base px-3 py-2 border rounded-lg outline-none">
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-sm" data-i18n="btnAddCashier">Thêm Thu ngân</button>
+                </form>
+                <div id="cashierList" class="mt-3 space-y-2"></div>
+            </div>
+
+            <div id="sheetsSettings" class="admin-only border p-4 rounded-xl bg-green-50">
+                <h3 class="text-sm sm:text-base font-bold mb-2 text-green-700">Đồng bộ Google Sheets</h3>
+                <p id="sheetsDescription" class="text-xs text-gray-600 mb-3" data-i18n="sheetsDescription">Lưu riêng URL Web App để đồng bộ và URL Google Sheet để mở bảng dữ liệu.</p>
+                <form onsubmit="saveSheetsSettings(event)" class="flex flex-col sm:flex-row gap-2">
+                    <input id="sheetsWebAppUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 text-base px-3 py-2 border rounded-lg outline-none">
+                    <input id="sheetsDocumentUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit" class="flex-1 text-base px-3 py-2 border rounded-lg outline-none">
+                    <button id="sheetsSaveButton" type="submit" class="bg-green-600 text-white font-bold px-4 py-2 rounded-lg text-sm" data-i18n="saveConnection">Lưu kết nối</button>
+                    <button id="sheetsSyncButton" type="button" onclick="syncAllDataToGoogleSheets(true)" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-sm" data-i18n="syncNow">Đồng bộ ngay</button>
+                    <button id="sheetsOpenButton" type="button" onclick="openSheets()" class="bg-gray-800 text-white font-bold px-4 py-2 rounded-lg text-sm" data-i18n="openSheets">Mở Sheets</button>
+                </form>
+                <p id="sheetsSyncStatus" class="text-xs mt-2 text-gray-600"></p>
+            </div>
+
+            <div class="admin-only border p-4 rounded-xl bg-gray-50">
+                <h3 class="text-sm sm:text-base font-bold mb-3" data-i18n="actionLogTitle">Danh sách thao tác</h3>
+                <div class="overflow-x-auto"><table class="w-full text-left text-xs border"><thead class="bg-gray-100"><tr><th class="p-2">Nhân viên</th><th class="p-2">Thao tác</th><th class="p-2">Khách</th><th class="p-2">Số điện thoại</th><th class="p-2">Điểm</th><th class="p-2">Thời gian</th></tr></thead><tbody id="actionLogBody"></tbody></table></div>
+            </div>
         </div>
     </main>
+
+    <div id="loginModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-sm w-full p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-bold text-gray-800" data-i18n="loginTitle">Đăng nhập Quản lý / Thu ngân</h3>
+                <button type="button" onclick="closeLoginModal()" class="text-gray-500 text-xl">&times;</button>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-3">
+                <select id="loginRole" onchange="renderLoginFields()" class="w-full text-base px-3 py-2 border rounded-lg outline-none">
+                    <option value="admin">Quản lý</option>
+                    <option value="cashier">Thu ngân</option>
+                </select>
+                <select id="loginCashier" class="hidden w-full text-base px-3 py-2 border rounded-lg outline-none"></select>
+                <input id="loginPassword" type="password" required placeholder="Mật khẩu admin" class="w-full text-base px-3 py-2 border rounded-lg outline-none">
+                <p id="loginHint" class="text-xs text-gray-500">ThaiThae.</p>
+                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg text-sm" data-i18n="login">Đăng nhập</button>
+            </form>
+        </div>
+    </div>
 
     <!-- THÊM / SỬA MÓN ĐỔI QUÀ -->
     <div id="rewardModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
@@ -261,8 +307,12 @@
         }
         const db = firebase.firestore();
 
-        // HẰNG SỐ: 30 NGÀY TÍNH BẰNG MILISECOND
-        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin';
+        const MAX_DAILY_EARN_POINTS = 49;
+        const DATA_RESET_VERSION = '2026-09-20-v2';
+        const GOOGLE_SHEETS_URL_KEY = 'loyalty_google_sheets_url';
+        const GOOGLE_SHEETS_DOCUMENT_URL_KEY = 'loyalty_google_sheets_document_url';
 
         // DANH MỤC MÓN MẶC ĐỊNH 
         const DEFAULT_REWARDS = [
@@ -292,9 +342,9 @@
                 btnSearch: "Tra cứu",
                 custNameLabel: "Tên khách hàng",
                 custPointsLabel: "Điểm hiện có",
-                pointsExpiryNote: "Điểm sẽ tự động reset về 0 sau 30 ngày tích lũy",
+                pointsExpiryNote: "Điểm không giới hạn thời gian",
                 redeemTitle: "Danh Mục Quà Đổi Điểm",
-                historyTitle: "Lịch Sử Điểm (30 Ngày)",
+                historyTitle: "Lịch Sử Điểm",
                 thDate: "Thời gian",
                 thPoints: "Điểm",
                 thDesc: "Mô tả",
@@ -355,9 +405,9 @@
                 btnSearch: "Search",
                 custNameLabel: "Customer Name",
                 custPointsLabel: "Current Points",
-                pointsExpiryNote: "Points automatically reset to 0 after 30 days",
+                pointsExpiryNote: "Points do not expire",
                 redeemTitle: "Reward Catalog",
-                historyTitle: "Points History (30 Days)",
+                historyTitle: "Points History",
                 thDate: "Date",
                 thPoints: "Points",
                 thDesc: "Description",
@@ -418,9 +468,9 @@
                 btnSearch: "ค้นหา",
                 custNameLabel: "ชื่อลูกค้า",
                 custPointsLabel: "คะแนนสะสม",
-                pointsExpiryNote: "คะแนนจะถูกรีเซ็ตเป็น 0 อัตโนมัติหลัง 30 วัน",
+                pointsExpiryNote: "คะแนนไม่มีวันหมดอายุ",
                 redeemTitle: "รายการของรางวัล",
-                historyTitle: "ประวัติคะแนน (30 วัน)",
+                historyTitle: "ประวัติคะแนน",
                 thDate: "วันที่",
                 thPoints: "คะแนน",
                 thDesc: "รายละเอียด",
@@ -465,10 +515,170 @@
             }
         };
 
+        const extraTranslations = {
+            vi: {
+                tabCustomerList: 'Danh sách khách hàng', tabRealtime: 'REAL-TIME', tabManagement: 'Quản lý',
+                phoneSearchPlaceholder: 'Nhập số điện thoại...', realtimePhonePlaceholder: 'Số điện thoại khách',
+                cashierManagementTitle: 'Quản lý Thu ngân', cashierNamePlaceholder: 'Tên Thu ngân', btnAddCashier: 'Thêm Thu ngân',
+                actionLogTitle: 'Danh sách thao tác', loginTitle: 'Đăng nhập Quản lý / Thu ngân', login: 'Đăng nhập', logout: 'Đăng xuất',
+                guest: 'Khách hàng', admin: 'Quản lý', cashier: 'Thu ngân', selectCashier: 'Chọn tên Thu ngân đã được Quản lý tạo.',
+                noCashier: 'Chưa có Thu ngân', noCashierAccount: 'Chưa có tài khoản Thu ngân.', view: 'Xem', noCustomers: 'Chưa có khách hàng',
+                addPointsFormTitle: 'Nhập điểm tích lũy', phonePlaceholder: 'Số điện thoại', invoicePlaceholder: 'Mã hóa đơn 5 ký tự', amountPlaceholder: 'Tổng tiền hóa đơn', addPoints: 'Cộng điểm',
+                noCustomerFound: 'Không tìm thấy khách hàng.', usedInvoices: 'Hóa đơn đã dùng', usageHistory: 'Lịch sử sử dụng', noInvoice: 'Chưa có hóa đơn', deleteInvoice: 'Xóa phiếu',
+                employee: 'Nhân viên', operation: 'Thao tác', customer: 'Khách', phone: 'Số điện thoại', points: 'Điểm', time: 'Thời gian', detail: 'Chi tiết',
+                invalidLogin: 'Tên đăng nhập hoặc mật khẩu không đúng.', invalidInvoice: 'Sai hóa đơn', amountTooLow: 'Số tiền hóa đơn chưa đủ 100.000 VNĐ!', dailyLimit: 'Khách hàng đã đạt giới hạn 49 điểm trong ngày hôm nay.',
+                insufficientPoints: 'Điểm hiện tại không đủ để trừ!', pointsUnit: 'Điểm', reasonPlaceholder: 'Sự cố hệ thống, đền bù...',
+                saveConnection: 'Lưu kết nối', syncNow: 'Đồng bộ ngay', openSheets: 'Mở Sheets', sheetsDescription: 'Lưu riêng URL Web App để đồng bộ và URL Google Sheet để mở bảng dữ liệu.'
+            },
+            en: {
+                tabCustomerList: 'Customer List', tabRealtime: 'REAL-TIME', tabManagement: 'Management', phoneSearchPlaceholder: 'Enter phone number...', realtimePhonePlaceholder: 'Customer phone number',
+                cashierManagementTitle: 'Cashier Management', cashierNamePlaceholder: 'Cashier name', btnAddCashier: 'Add Cashier', actionLogTitle: 'Activity Log', loginTitle: 'Manager / Cashier Login', login: 'Login', logout: 'Logout', guest: 'Customer', admin: 'Manager', cashier: 'Cashier', selectCashier: 'Select a cashier created by the manager.', noCashier: 'No cashier', noCashierAccount: 'No cashier account.', view: 'View', noCustomers: 'No customers', addPointsFormTitle: 'Add Loyalty Points', phonePlaceholder: 'Phone number', invoicePlaceholder: '5-character invoice code', amountPlaceholder: 'Invoice total', addPoints: 'Add Points', noCustomerFound: 'Customer not found.', usedInvoices: 'Used Invoices', usageHistory: 'Usage History', noInvoice: 'No invoices', deleteInvoice: 'Delete invoice', employee: 'Employee', operation: 'Action', customer: 'Customer', phone: 'Phone', points: 'Points', time: 'Time', detail: 'Details', invalidLogin: 'Invalid username or password.', invalidInvoice: 'Invalid invoice', amountTooLow: 'Invoice amount must be at least 100,000 VND!', dailyLimit: 'The customer has reached the daily limit of 49 points.', insufficientPoints: 'Not enough points to deduct!', pointsUnit: 'Points', reasonPlaceholder: 'System issue, compensation...', saveConnection: 'Save connection', syncNow: 'Sync now', openSheets: 'Open Sheets', sheetsDescription: 'Save the Web App URL for syncing and the Google Sheet URL for opening the data.'
+            },
+            th: {
+                tabCustomerList: 'รายชื่อลูกค้า', tabRealtime: 'เรียลไทม์', tabManagement: 'จัดการ', phoneSearchPlaceholder: 'กรอกเบอร์โทรศัพท์...', realtimePhonePlaceholder: 'เบอร์โทรศัพท์ลูกค้า', cashierManagementTitle: 'จัดการแคชเชียร์', cashierNamePlaceholder: 'ชื่อแคชเชียร์', btnAddCashier: 'เพิ่มแคชเชียร์', actionLogTitle: 'บันทึกการดำเนินการ', loginTitle: 'เข้าสู่ระบบผู้จัดการ / แคชเชียร์', login: 'เข้าสู่ระบบ', logout: 'ออกจากระบบ', guest: 'ลูกค้า', admin: 'ผู้จัดการ', cashier: 'แคชเชียร์', selectCashier: 'เลือกชื่อแคชเชียร์ที่ผู้จัดการสร้างไว้', noCashier: 'ไม่มีแคชเชียร์', noCashierAccount: 'ยังไม่มีบัญชีแคชเชียร์', view: 'ดู', noCustomers: 'ยังไม่มีลูกค้า', addPointsFormTitle: 'เพิ่มคะแนนสะสม', phonePlaceholder: 'เบอร์โทรศัพท์', invoicePlaceholder: 'รหัสใบเสร็จ 5 ตัวอักษร', amountPlaceholder: 'ยอดรวมใบเสร็จ', addPoints: 'เพิ่มคะแนน', noCustomerFound: 'ไม่พบลูกค้า', usedInvoices: 'ใบเสร็จที่ใช้แล้ว', usageHistory: 'ประวัติการใช้งาน', noInvoice: 'ยังไม่มีใบเสร็จ', deleteInvoice: 'ลบใบเสร็จ', employee: 'พนักงาน', operation: 'การดำเนินการ', customer: 'ลูกค้า', phone: 'เบอร์โทรศัพท์', points: 'คะแนน', time: 'เวลา', detail: 'รายละเอียด', invalidLogin: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', invalidInvoice: 'ใบเสร็จไม่ถูกต้อง', amountTooLow: 'ยอดใบเสร็จต้องไม่น้อยกว่า 100,000 VND', dailyLimit: 'ลูกค้าได้รับคะแนนถึงขีดจำกัด 49 คะแนนต่อวันแล้ว', insufficientPoints: 'คะแนนไม่เพียงพอสำหรับการหัก', pointsUnit: 'คะแนน', reasonPlaceholder: 'ปัญหาระบบ การชดเชย...', saveConnection: 'บันทึกการเชื่อมต่อ', syncNow: 'ซิงค์ทันที', openSheets: 'เปิด Sheets', sheetsDescription: 'บันทึก URL Web App สำหรับซิงค์ และ URL Google Sheet สำหรับเปิดข้อมูล'
+            }
+        };
+
+        function t(key) {
+            return extraTranslations[currentLang][key] || dictionary[currentLang][key] || key;
+        }
+
+        Object.assign(extraTranslations.vi, { registerMemberTitle: 'Đăng ký thành viên', customerNamePlaceholder: 'Khách hàng', registerCustomer: 'Đăng ký khách' });
+        Object.assign(extraTranslations.en, { registerMemberTitle: 'Member Registration', customerNamePlaceholder: 'Customer name', registerCustomer: 'Register Customer' });
+        Object.assign(extraTranslations.th, { registerMemberTitle: 'ลงทะเบียนสมาชิก', customerNamePlaceholder: 'ชื่อลูกค้า', registerCustomer: 'ลงทะเบียนลูกค้า' });
+        Object.assign(extraTranslations.vi, { deleteCustomer: 'Xóa khách' });
+        Object.assign(extraTranslations.en, { deleteCustomer: 'Delete customer' });
+        Object.assign(extraTranslations.th, { deleteCustomer: 'ลบลูกค้า' });
+
         let currentLang = 'vi';
         let currentSearchPhone = null;
         let usersCache = JSON.parse(localStorage.getItem('loyalty_users') || '{}');
         let rewardsCache = JSON.parse(localStorage.getItem('loyalty_rewards') || 'null');
+        let cashierAccounts = JSON.parse(localStorage.getItem('loyalty_cashiers') || '[]');
+        let currentSession = null;
+
+        function getTodayKey() {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${now.getFullYear()}-${month}-${day}`;
+        }
+
+        function bindEnter(id, action) {
+            const element = document.getElementById(id);
+            if (!element) return;
+            element.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    action();
+                }
+            });
+        }
+
+        function isLoggedIn() {
+            return Boolean(currentSession && currentSession.role);
+        }
+
+        function isAdmin() {
+            return isLoggedIn() && currentSession.role === 'admin';
+        }
+
+        function applyAccessState() {
+            const loggedIn = isLoggedIn();
+            document.querySelectorAll('.auth-only').forEach(element => element.classList.toggle('auth-visible', loggedIn));
+            document.querySelectorAll('.admin-only').forEach(element => element.classList.toggle('admin-visible', isAdmin()));
+            document.querySelectorAll('.cashier-only').forEach(element => element.classList.toggle('cashier-visible', loggedIn && currentSession.role === 'cashier'));
+
+            const status = document.getElementById('authStatus');
+            const button = document.getElementById('authButton');
+            if (loggedIn) {
+                status.textContent = `${currentSession.role === 'admin' ? t('admin') : t('cashier')}: ${currentSession.name}`;
+                button.textContent = t('logout');
+                button.onclick = logout;
+            } else {
+                status.textContent = t('guest');
+                button.textContent = t('login');
+                button.onclick = openLoginModal;
+                switchTab('customer');
+            }
+
+            if (isAdmin()) {
+                document.getElementById('sheetsWebAppUrl').value = localStorage.getItem(GOOGLE_SHEETS_URL_KEY) || '';
+                document.getElementById('sheetsDocumentUrl').value = localStorage.getItem(GOOGLE_SHEETS_DOCUMENT_URL_KEY) || '';
+                renderCashierList();
+            }
+        }
+
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('loginModal').classList.add('flex');
+            renderLoginFields();
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('flex');
+        }
+
+        function renderLoginFields() {
+            const isAdminLogin = document.getElementById('loginRole').value === 'admin';
+            const cashierSelect = document.getElementById('loginCashier');
+            const passwordInput = document.getElementById('loginPassword');
+            cashierSelect.classList.toggle('hidden', isAdminLogin);
+            passwordInput.classList.toggle('hidden', !isAdminLogin);
+            passwordInput.required = isAdminLogin;
+            cashierSelect.innerHTML = cashierAccounts.length
+                ? cashierAccounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('')
+                : `<option value="">${t('noCashier')}</option>`;
+            document.getElementById('loginHint').textContent = isAdminLogin
+                ? 'ThaiThae.'
+                : t('selectCashier');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const role = document.getElementById('loginRole').value;
+            const password = document.getElementById('loginPassword').value;
+            let session = null;
+
+            if (role === 'admin' && password === ADMIN_PASSWORD) {
+                session = { role: 'admin', name: ADMIN_USERNAME };
+            } else if (role === 'cashier') {
+                const cashier = cashierAccounts.find(account => account.id === document.getElementById('loginCashier').value);
+                if (cashier) session = { role: 'cashier', name: cashier.name };
+            }
+
+            if (!session) {
+                alert(t('invalidLogin'));
+                return;
+            }
+
+            currentSession = session;
+            closeLoginModal();
+            applyAccessState();
+            switchTab('customer-list');
+        }
+
+        function logout() {
+            currentSession = null;
+            applyAccessState();
+        }
+
+        function requireLogin() {
+            if (isLoggedIn()) return true;
+            openLoginModal();
+            return false;
+        }
+
+        function getDailyEarnedPoints(user, dayKey = getTodayKey()) {
+            return (user.history || [])
+                .filter(item => item.type === 'EARN' && item.dayKey === dayKey)
+                .reduce((total, item) => total + Math.max(0, Number(item.points) || 0), 0);
+        }
+
+        function transactionIdExists(txId) {
+            return Object.values(getUsers()).some(user => (user.history || []).some(item => item.type === 'EARN' && item.txId === txId));
+        }
 
         // --- FIRESTORE DATA MANAGEMENT ---
         function getUsers() {
@@ -501,6 +711,266 @@
             if (currentSearchPhone) renderCustomerView(currentSearchPhone);
         }
 
+        function renderCashierList() {
+            const list = document.getElementById('cashierList');
+            if (!list) return;
+            list.innerHTML = cashierAccounts.length ? cashierAccounts.map(account => `
+                <div class="flex items-center justify-between bg-white border rounded-lg px-3 py-2 text-xs">
+                    <span><strong>${account.name}</strong> · Thu ngân</span>
+                    <button type="button" onclick="deleteCashier('${account.id}')" class="text-red-600 font-bold">Xóa</button>
+                </div>
+            `).join('') : '<p class="text-xs text-gray-500">Chưa có tài khoản Thu ngân.</p>';
+        }
+
+        function handleAddCashier(event) {
+            event.preventDefault();
+            if (!isAdmin()) return;
+            const name = document.getElementById('cashierName').value.trim();
+            if (cashierAccounts.some(account => account.name.toLowerCase() === name.toLowerCase()) || name === ADMIN_USERNAME) {
+                alert('Tên Thu ngân đã tồn tại.');
+                return;
+            }
+            cashierAccounts.push({ id: Date.now().toString(), name });
+            localStorage.setItem('loyalty_cashiers', JSON.stringify(cashierAccounts));
+            document.getElementById('cashierForm').reset();
+            renderCashierList();
+        }
+
+        function deleteCashier(id) {
+            if (!isAdmin() || !confirm('Xóa tài khoản Thu ngân này?')) return;
+            cashierAccounts = cashierAccounts.filter(account => account.id !== id);
+            localStorage.setItem('loyalty_cashiers', JSON.stringify(cashierAccounts));
+            renderCashierList();
+        }
+
+        function saveSheetsSettings(event) {
+            event.preventDefault();
+            if (!isAdmin()) return;
+            const url = document.getElementById('sheetsWebAppUrl').value.trim();
+            const documentUrl = document.getElementById('sheetsDocumentUrl').value.trim();
+            localStorage.setItem(GOOGLE_SHEETS_URL_KEY, url);
+            localStorage.setItem(GOOGLE_SHEETS_DOCUMENT_URL_KEY, documentUrl);
+            setSheetsStatus(url ? 'Đã lưu địa chỉ Google Sheets Web App.' : 'Đã tắt đồng bộ Google Sheets.');
+            if (url) syncAllDataToGoogleSheets(true);
+        }
+
+        function setSheetsStatus(message) {
+            const status = document.getElementById('sheetsSyncStatus');
+            if (status) status.textContent = message;
+        }
+
+        async function postToGoogleSheets(payload, showStatus = false) {
+            const url = localStorage.getItem(GOOGLE_SHEETS_URL_KEY);
+            if (!url) return;
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                if (showStatus) setSheetsStatus('Check Execution.');
+            } catch (error) {
+                console.error('Không thể đồng bộ Google Sheets:', error);
+                setSheetsStatus('Chưa gửi được dữ liệu Google Sheets, dữ liệu Firebase vẫn được lưu.');
+            }
+        }
+
+        function syncAllDataToGoogleSheets(showStatus = false) {
+            const customers = [];
+            const directChanges = [];
+            const redeemedRewards = [];
+
+            Object.entries(getUsers()).forEach(([phone, user]) => {
+                customers.push({
+                    phone,
+                    name: user.name || '',
+                    points: user.points || 0,
+                    lastPointUpdate: user.lastPointUpdate || ''
+                });
+
+                (user.history || []).forEach(item => {
+                    const row = {
+                        date: item.date || '',
+                        type: item.type || '',
+                        employee: item.employee || (item.type === 'ADJUST' || item.type === 'DELETE_INVOICE' ? 'ADMIN' : ''),
+                        customerName: user.name || '',
+                        phone,
+                        pointsUpdated: item.points || 0,
+                        totalPoints: user.points || 0,
+                        txId: item.txId || '',
+                        amount: item.amount || '',
+                        reason: item.reason || item.desc || '',
+                        reward: item.reward || ''
+                    };
+
+                    if (item.type === 'REDEEM') {
+                        redeemedRewards.push({
+                            date: row.date,
+                            employee: row.employee || 'KHACH',
+                            customerName: row.customerName,
+                            phone,
+                            points: Math.abs(Number(item.points) || 0),
+                            reward: row.reward || row.reason
+                        });
+                    } else {
+                        directChanges.push(row);
+                    }
+                });
+            });
+
+            postToGoogleSheets({
+                type: 'FULL_SYNC',
+                customers,
+                directChanges,
+                redeemedRewards
+            }, showStatus);
+        }
+
+        function syncCustomerListToGoogleSheets() {
+            syncAllDataToGoogleSheets();
+        }
+
+        function syncTransactionToGoogleSheets() {
+            syncAllDataToGoogleSheets();
+        }
+
+        function renderCustomerDirectory() {
+            if (!isLoggedIn()) return;
+            const users = getUsers();
+            const body = document.getElementById('customerDirectoryBody');
+            const options = document.getElementById('customerPhoneOptions');
+            const cashierSelect = document.getElementById('registerCashier');
+            body.innerHTML = Object.entries(users).map(([phone, user]) => `
+                <tr class="border-b">
+                    <td class="p-2 font-semibold">${user.name}</td>
+                    <td class="p-2">${phone}</td>
+                    <td class="p-2 font-bold">${user.points || 0} pts</td>
+                    <td class="p-2 space-x-2">
+                        <button type="button" onclick="openCustomerRealtime('${phone}')" class="text-indigo-600 font-bold">${t('view')}</button>
+                        ${isAdmin() ? `<button type="button" onclick="deleteCustomer('${phone}')" class="text-red-600 font-bold">${t('deleteCustomer')}</button>` : ''}
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="4" class="p-3 text-center text-gray-500">${t('noCustomers')}</td></tr>`;
+            options.innerHTML = Object.keys(users).map(phone => `<option value="${phone}">${users[phone].name}</option>`).join('');
+            cashierSelect.innerHTML = cashierAccounts.map(account => `<option value="${account.name}">${account.name}</option>`).join('') || '<option value="">Chưa có Thu ngân</option>';
+            renderCustomerListPointsForm('');
+        }
+
+        function renderCustomerListPointsForm(phone = '') {
+            const target = document.getElementById('realtimePointsForm');
+            target.innerHTML = `
+                <h3 class="text-base font-bold mb-3">${t('addPointsFormTitle')}</h3>
+                <form id="addPointsForm" onsubmit="handleAddPoints(event)" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="tel" id="staffPhone" list="customerPhoneOptions" value="${phone}" required placeholder="${t('phonePlaceholder')}" class="text-base px-3 py-2 border rounded-lg outline-none">
+                        <input type="text" id="staffTxId" maxlength="5" placeholder="${t('invoicePlaceholder')}" class="text-base px-3 py-2 border rounded-lg outline-none">
+                        <input type="number" id="staffAmount" min="0" step="1000" required placeholder="${t('amountPlaceholder')}" class="text-base px-3 py-2 border rounded-lg outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg text-sm">${t('addPoints')}</button>
+                </form>`;
+            bindEnter('staffPhone', () => document.getElementById('staffTxId').focus());
+            bindEnter('staffTxId', () => document.getElementById('staffAmount').focus());
+            bindEnter('staffAmount', () => document.getElementById('addPointsForm').requestSubmit());
+        }
+
+        function searchCustomerList() {
+            document.getElementById('realtimePhone').value = document.getElementById('customerListSearch').value.trim();
+        }
+
+        function focusCustomerListPhone() {
+            const input = document.getElementById('customerListSearch');
+            input.focus();
+            input.select();
+        }
+
+        function handleStaffRegister(event) {
+            event.preventDefault();
+            if (!isLoggedIn()) return;
+            const phone = document.getElementById('staffRegisterPhone').value.trim();
+            const name = document.getElementById('staffRegisterName').value.trim();
+            const cashier = document.getElementById('registerCashier').value;
+            const users = getUsers();
+            if (users[phone]) {
+                alert('Thành viên đã tồn tại');
+                switchTab('customer-list');
+                document.getElementById('customerListSearch').value = phone;
+                renderCustomerListPointsForm(phone);
+                document.getElementById('staffPhone').focus();
+                return;
+            }
+            users[phone] = {
+                name,
+                points: 0,
+                lastPointUpdate: Date.now(),
+                history: [{ date: new Date().toLocaleString(), type: 'WELCOME', points: 0, employee: cashier, desc: 'Đăng ký thành viên' }]
+            };
+            saveUsers(users);
+            syncCustomerListToGoogleSheets();
+            document.getElementById('staffRegisterForm').reset();
+            renderCustomerDirectory();
+            document.getElementById('customerListSearch').value = phone;
+            renderCustomerListPointsForm(phone);
+            document.getElementById('staffPhone').focus();
+        }
+
+        function openCustomerRealtime(phone) {
+            switchTab('realtime');
+            document.getElementById('realtimePhone').value = phone;
+            renderRealtime(phone);
+        }
+
+        function handleRealtimeSearch(event) {
+            event.preventDefault();
+            renderRealtime(document.getElementById('realtimePhone').value.trim());
+        }
+
+        function renderRealtime(phone) {
+            const user = getUsers()[phone];
+            const target = document.getElementById('realtimeSummary');
+            if (!user) {
+                target.classList.remove('hidden');
+                target.innerHTML = '<p class="text-red-600 font-bold">Không tìm thấy khách hàng.</p>';
+                return;
+            }
+            currentSearchPhone = phone;
+            target.classList.remove('hidden');
+            const invoices = (user.history || []).filter(item => item.type === 'EARN');
+            const history = (user.history || []).slice().reverse();
+            target.innerHTML = `
+                <div class="bg-indigo-50 border rounded-xl p-4 mb-4">
+                    <p class="font-bold text-lg">${user.name}</p><p>${phone}</p><p class="font-extrabold text-indigo-700 mt-2">${user.points || 0} pts</p>
+                </div>
+                <h3 class="font-bold mb-2">Hóa đơn đã dùng</h3>
+                <div class="overflow-x-auto mb-5"><table class="w-full text-left text-xs border"><thead class="bg-gray-100"><tr><th class="p-2">Mã hóa đơn</th><th class="p-2">Số tiền</th><th class="p-2">Điểm</th><th class="p-2">Thời gian</th><th class="p-2">Thao tác</th></tr></thead><tbody>
+                ${invoices.map(item => `<tr class="border-b"><td class="p-2">${item.txId || ''}</td><td class="p-2">${Number(item.amount || 0).toLocaleString()}</td><td class="p-2">+${item.points}</td><td class="p-2">${item.date}</td><td class="p-2">${isAdmin() ? `<button onclick="deleteInvoice('${phone}','${item.txId}')" class="text-red-600 font-bold">Xóa phiếu</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="p-2">Chưa có hóa đơn</td></tr>'}
+                </tbody></table></div>
+                <h3 class="font-bold mb-2">Lịch sử sử dụng</h3>
+                <div class="overflow-x-auto"><table class="w-full text-left text-xs border"><thead class="bg-gray-100"><tr><th class="p-2">Nhân viên</th><th class="p-2">Thao tác</th><th class="p-2">Điểm</th><th class="p-2">Thời gian</th><th class="p-2">Chi tiết</th></tr></thead><tbody>
+                ${history.map(item => `<tr class="border-b"><td class="p-2">${item.employee || (item.type === 'REDEEM' ? 'KHÁCH' : item.type === 'ADJUST' ? 'ADMIN' : '')}</td><td class="p-2">${item.type}</td><td class="p-2">${item.points > 0 ? '+' : ''}${item.points || 0}</td><td class="p-2">${item.date}</td><td class="p-2">${item.desc || ''}</td></tr>`).join('')}
+                </tbody></table></div>`;
+        }
+
+        function renderManagement() {
+            renderStaffRewards();
+            renderCashierList();
+            renderCustomerDirectory();
+            const body = document.getElementById('actionLogBody');
+            const rows = Object.entries(getUsers()).flatMap(([phone, user]) => (user.history || []).map(item => ({ phone, user, item })));
+            body.innerHTML = rows.reverse().map(({ phone, user, item }) => `
+                <tr class="border-b"><td class="p-2">${item.employee || (item.type === 'REDEEM' ? 'KHÁCH' : item.type === 'ADJUST' || item.type === 'DELETE_INVOICE' ? 'ADMIN' : '')}</td><td class="p-2">${item.type}</td><td class="p-2">${user.name}</td><td class="p-2">${phone}</td><td class="p-2">${item.points || 0}</td><td class="p-2">${item.date}</td></tr>
+            `).join('') || '<tr><td colspan="6" class="p-2 text-center text-gray-500">Chưa có thao tác</td></tr>';
+        }
+
+        function openSheets() {
+            const url = localStorage.getItem(GOOGLE_SHEETS_DOCUMENT_URL_KEY);
+            if (!url) {
+                alert('Vui lòng lưu URL Google Sheet (docs.google.com) trước.');
+                return;
+            }
+            window.open(url, '_blank', 'noopener');
+        }
+
         async function syncUsersToFirestore(users) {
             const batch = db.batch();
             Object.entries(users).forEach(([phone, user]) => {
@@ -509,8 +979,29 @@
             await batch.commit();
         }
 
+        async function resetLegacyCustomerData() {
+            if (localStorage.getItem('loyalty_data_reset_version') === DATA_RESET_VERSION) return;
+
+            const resetDoc = await db.collection('settings').doc('dataReset').get();
+            if (resetDoc.exists && resetDoc.data().version === DATA_RESET_VERSION) {
+                localStorage.setItem('loyalty_data_reset_version', DATA_RESET_VERSION);
+                return;
+            }
+
+            const usersSnapshot = await db.collection('users').get();
+            await Promise.all(usersSnapshot.docs.map(doc => doc.ref.delete()));
+            usersCache = {};
+            localStorage.removeItem('loyalty_users');
+            await db.collection('settings').doc('dataReset').set({
+                version: DATA_RESET_VERSION,
+                resetAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            localStorage.setItem('loyalty_data_reset_version', DATA_RESET_VERSION);
+        }
+
         async function loadFirebaseData() {
             try {
+                await resetLegacyCustomerData();
                 const usersSnapshot = await db.collection('users').get();
                 const remoteUsers = {};
                 usersSnapshot.forEach(doc => { remoteUsers[doc.id] = doc.data(); });
@@ -535,6 +1026,7 @@
                 }
 
                 renderStaffRewards();
+                syncAllDataToGoogleSheets();
                 if (currentSearchPhone && usersCache[currentSearchPhone]) {
                     renderCustomerView(currentSearchPhone);
                 }
@@ -546,23 +1038,8 @@
 
         loadFirebaseData();
 
-        // --- HÀM TỰ ĐỘNG KIỂM TRA & RESET ĐIỂM SAU 30 NGÀY ---
+        // Điểm thành viên được lưu không giới hạn thời gian.
         function checkAndResetPointExpiry(user) {
-            if (!user) return false;
-            const now = Date.now();
-
-            // Nếu user có điểm và đã quá 30 ngày tính từ lần cập nhật điểm cuối
-            if (user.points > 0 && user.lastPointUpdate && (now - user.lastPointUpdate > THIRTY_DAYS_MS)) {
-                user.history.push({
-                    date: new Date().toLocaleString(),
-                    type: "EXPIRED",
-                    points: -user.points,
-                    desc: dictionary[currentLang].msgExpiredReset
-                });
-                user.points = 0;
-                user.lastPointUpdate = now; // Cập nhật lại thời gian
-                return true; // Đã reset điểm
-            }
             return false;
         }
 
@@ -571,17 +1048,31 @@
             currentLang = lang;
             document.querySelectorAll('[data-i18n]').forEach(elem => {
                 const key = elem.getAttribute('data-i18n');
-                if (dictionary[lang][key]) {
-                    elem.innerText = dictionary[lang][key];
+                if (extraTranslations[lang][key] || dictionary[lang][key]) {
+                    elem.innerText = extraTranslations[lang][key] || dictionary[lang][key];
                 }
             });
 
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(elem => {
+                elem.placeholder = t(elem.getAttribute('data-i18n-placeholder'));
+            });
+            document.getElementById('sheetsDescription').textContent = t('sheetsDescription');
+            document.getElementById('sheetsSaveButton').textContent = t('saveConnection');
+            document.getElementById('sheetsSyncButton').textContent = t('syncNow');
+            document.getElementById('sheetsOpenButton').textContent = t('openSheets');
+            document.title = `${t('appTitle')} - THAI THAE`;
+
+            applyAccessState();
+            renderLoginFields();
+            renderCustomerDirectory();
             renderStaffRewards();
             if (currentSearchPhone) renderCustomerView(currentSearchPhone);
         }
 
         // --- CHUYỂN TAB ---
         function switchTab(tab) {
+            if (['customer-list', 'realtime', 'management'].includes(tab) && !requireLogin()) return;
+            if (tab === 'management' && !isAdmin()) return;
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => {
                 b.classList.remove('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
@@ -593,46 +1084,12 @@
             activeBtn.classList.add('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
             activeBtn.classList.remove('border-transparent', 'text-gray-500');
 
-            if (tab === 'staff') renderStaffRewards();
+            if (tab === 'management' && isLoggedIn()) renderManagement();
+            if (tab === 'customer-list' && isLoggedIn()) renderCustomerDirectory();
+            if (tab === 'realtime' && isLoggedIn()) renderCustomerListPointsForm(document.getElementById('realtimePhone').value.trim());
         }
 
-        // --- 1. XỬ LÝ ĐĂNG KÝ THÀNH VIÊN ---
-        function handleRegister(e) {
-            e.preventDefault();
-            const phone = document.getElementById('regPhone').value.trim();
-            const name = document.getElementById('regName').value.trim();
-            const users = getUsers();
-
-            if (users[phone]) {
-                alert(dictionary[currentLang].msgRegExist);
-                return;
-            }
-
-            const now = Date.now();
-            const expiryDate = new Date(now + THIRTY_DAYS_MS);
-
-            users[phone] = {
-                name: name,
-                points: 0,
-                lastPointUpdate: now,
-                history: [
-                    {
-                        date: new Date().toLocaleString(),
-                        type: "WELCOME",
-                        points: 0,
-                        desc: "Đăng ký thành viên, tặng Coupon 30 ngày"
-                    }
-                ]
-            };
-
-            saveUsers(users);
-
-            document.getElementById('couponExpiry').innerText = expiryDate.toLocaleDateString();
-            document.getElementById('regResult').classList.remove('hidden');
-            document.getElementById('regForm').reset();
-        }
-
-        // --- 2. TRA CỨU KHÁCH HÀNG ---
+        // --- TRA CỨU KHÁCH HÀNG ---
         function searchCustomer() {
             const phone = document.getElementById('custPhoneSearch').value.trim();
             const users = getUsers();
@@ -662,13 +1119,7 @@
             document.getElementById('custPhoneDisplay').innerText = phone;
             document.getElementById('custPointsDisplay').innerText = user.points;
 
-            // Hạn sử dụng điểm
-            if (user.lastPointUpdate && user.points > 0) {
-                const expDate = new Date(user.lastPointUpdate + THIRTY_DAYS_MS);
-                document.getElementById('custExpiryDate').innerText = expDate.toLocaleDateString();
-            } else {
-                document.getElementById('custExpiryDate').innerText = "---";
-            }
+            document.getElementById('custExpiryDate').innerText = 'Không giới hạn thời gian';
 
             // Render Danh mục quà tặng
             const rewardContainer = document.getElementById('rewardList');
@@ -730,24 +1181,43 @@
             const itemName = reward.name[currentLang] || reward.name['vi'];
 
             user.points -= reward.points;
-            user.history.push({
+            const transaction = {
                 date: new Date().toLocaleString(),
                 type: "REDEEM",
                 points: -reward.points,
-                desc: `Đổi quà: ${itemName}`
-            });
+                desc: `Đổi quà: ${itemName}`,
+                phone: currentSearchPhone,
+                employee: 'KHÁCH',
+                reward: itemName
+            };
+            user.history.push(transaction);
 
             saveUsers(users);
+            syncTransactionToGoogleSheets(transaction, user);
+            syncCustomerListToGoogleSheets();
             alert(dictionary[currentLang].msgRedeemSuccess);
-            renderCustomerView(currentSearchPhone);
+            if (isLoggedIn()) {
+                switchTab('realtime');
+                document.getElementById('realtimePhone').value = currentSearchPhone;
+                renderRealtime(currentSearchPhone);
+            } else {
+                renderCustomerView(currentSearchPhone);
+            }
         }
 
         // --- 4. CỔNG NHÂN VIÊN: TÍCH ĐIỂM HÓA ĐƠN ---
         function handleAddPoints(e) {
             e.preventDefault();
+            if (!requireLogin()) return;
             const phone = document.getElementById('staffPhone').value.trim();
-            const txId = document.getElementById('staffTxId').value.trim();
+            const txId = document.getElementById('staffTxId').value.trim().toUpperCase();
             const amount = parseFloat(document.getElementById('staffAmount').value);
+
+            if (txId.length !== 5) {
+                alert(t('invalidInvoice'));
+                document.getElementById('staffTxId').focus();
+                return;
+            }
 
             const users = getUsers();
             if (!users[phone]) {
@@ -757,26 +1227,101 @@
 
             checkAndResetPointExpiry(users[phone]);
 
-            const earnedPoints = Math.floor(amount / 100000); // 100.000 VND = 1 điểm
-            if (earnedPoints <= 0) {
-                alert("Số tiền hóa đơn chưa đủ 100.000 VNĐ!");
+            const duplicate = Object.values(users).flatMap(user => user.history || []).find(item => item.type === 'EARN' && item.txId === txId);
+            if (duplicate) {
+                alert(`Hóa đơn đã được nhập lúc ${duplicate.date}`);
+                switchTab('realtime');
+                document.getElementById('realtimePhone').value = duplicate.phone || phone;
+                renderRealtime(duplicate.phone || phone);
                 return;
             }
 
-            users[phone].points += earnedPoints;
+            const earnedPoints = Math.floor(amount / 100000); // 100.000 VND = 1 điểm
+            if (earnedPoints <= 0) {
+                alert(t('amountTooLow'));
+                return;
+            }
+
+            const dayKey = getTodayKey();
+            const dailyTotal = getDailyEarnedPoints(users[phone], dayKey);
+            const remainingPoints = MAX_DAILY_EARN_POINTS - dailyTotal;
+            if (remainingPoints <= 0) {
+                alert(t('dailyLimit'));
+                return;
+            }
+            const pointsToAdd = Math.min(earnedPoints, remainingPoints);
+
+            users[phone].points += pointsToAdd;
             users[phone].lastPointUpdate = Date.now(); // Cập nhật thời gian tích điểm mới
-            users[phone].history.push({
+            const transaction = {
                 date: new Date().toLocaleString(),
                 type: "EARN",
-                points: earnedPoints,
+                points: pointsToAdd,
+                dayKey,
+                txId,
+                phone,
+                amount,
+                employee: currentSession.name,
                 desc: `Mã GD: ${txId} (${amount.toLocaleString()} VND)`
-            });
+            };
+            users[phone].history.push(transaction);
 
             saveUsers(users);
-            alert(dictionary[currentLang].msgAddPointsSuccess + ` (+${earnedPoints} pts)`);
+            syncTransactionToGoogleSheets(transaction, users[phone]);
+            syncCustomerListToGoogleSheets();
+            const capMessage = pointsToAdd < earnedPoints ? ' Đã áp dụng giới hạn 49 điểm/ngày.' : '';
+            alert(dictionary[currentLang].msgAddPointsSuccess + ` (+${pointsToAdd} pts).${capMessage}`);
             document.getElementById('addPointsForm').reset();
+            switchTab('realtime');
+            document.getElementById('realtimePhone').value = phone;
+            renderRealtime(phone);
+        }
 
-            if (currentSearchPhone === phone) renderCustomerView(phone);
+        async function deleteCustomer(phone) {
+            if (!isAdmin()) return;
+            const user = getUsers()[phone];
+            if (!user || !confirm(`${t('deleteCustomer')} ${user.name} (${phone})?`)) return;
+
+            delete getUsers()[phone];
+            usersCache = getUsers();
+            localStorage.setItem('loyalty_users', JSON.stringify(usersCache));
+            try {
+                await db.collection('users').doc(phone).delete();
+            } catch (error) {
+                console.error('Không thể xóa khách hàng khỏi Firebase:', error);
+                alert(error.message || 'Không thể xóa khách hàng.');
+                return;
+            }
+
+            if (currentSearchPhone === phone) currentSearchPhone = null;
+            syncAllDataToGoogleSheets();
+            renderCustomerDirectory();
+            renderRealtime(phone);
+        }
+
+        function deleteInvoice(phone, txId) {
+            if (!isAdmin()) return;
+            if (!confirm(`Xóa phiếu ${txId}? Điểm của phiếu này cũng sẽ được trừ lại.`)) return;
+            const user = getUsers()[phone];
+            const invoiceIndex = (user.history || []).findIndex(item => item.type === 'EARN' && item.txId === txId);
+            if (invoiceIndex < 0) return;
+            const invoice = user.history[invoiceIndex];
+            user.history.splice(invoiceIndex, 1);
+            user.points = Math.max(0, (user.points || 0) - invoice.points);
+            user.history.push({
+                date: new Date().toLocaleString(),
+                type: 'DELETE_INVOICE',
+                points: -invoice.points,
+                employee: 'ADMIN',
+                phone,
+                txId,
+                desc: `Xóa phiếu ${txId}`
+            });
+            saveUsers(getUsers());
+            syncCustomerListToGoogleSheets();
+            syncTransactionToGoogleSheets(user.history[user.history.length - 1], user);
+            renderRealtime(phone);
+            renderCustomerDirectory();
         }
 
         // --- 5. CỔNG NHÂN VIÊN: QUẢN LÝ DANH MỤC QUÀ (CRUD) ---
@@ -802,6 +1347,7 @@
         }
 
         function openRewardModal(id = null) {
+            if (!isAdmin()) return requireLogin();
             const modal = document.getElementById('rewardModal');
             const form = document.getElementById('rewardForm');
             form.reset();
@@ -835,6 +1381,7 @@
 
         function handleSaveReward(e) {
             e.preventDefault();
+            if (!isAdmin()) return;
             const id = document.getElementById('modalRewardId').value;
             const icon = document.getElementById('modalIcon').value.trim();
             const nameVi = document.getElementById('modalNameVi').value.trim();
@@ -867,6 +1414,7 @@
         }
 
         function deleteReward(id) {
+            if (!isAdmin()) return requireLogin();
             if (!confirm(dictionary[currentLang].msgConfirmDelete)) return;
             let rewards = getRewards();
             rewards = rewards.filter(r => r.id != id);
@@ -876,6 +1424,7 @@
         // --- 6. CỔNG NHÂN VIÊN: CỘNG/TRỪ ĐIỂM ADMIN ---
         function handleAdjustPoints(e) {
             e.preventDefault();
+            if (!isAdmin()) return;
             const phone = document.getElementById('adjPhone').value.trim();
             const type = document.getElementById('adjType').value;
             const pointsVal = parseInt(document.getElementById('adjPoints').value);
@@ -892,25 +1441,35 @@
             const adjustedPoints = type === 'add' ? pointsVal : -pointsVal;
 
             if (type === 'deduct' && users[phone].points < pointsVal) {
-                alert("Điểm hiện tại không đủ để trừ!");
+                alert(t('insufficientPoints'));
                 return;
             }
 
             users[phone].points += adjustedPoints;
             users[phone].lastPointUpdate = Date.now();
-            users[phone].history.push({
+            const transaction = {
                 date: new Date().toLocaleString(),
                 type: "ADJUST",
                 points: adjustedPoints,
+                phone,
+                reason,
                 desc: `${reason}`
-            });
+            };
+            users[phone].history.push(transaction);
 
             saveUsers(users);
+            syncTransactionToGoogleSheets(transaction, users[phone]);
+            syncCustomerListToGoogleSheets();
             alert(dictionary[currentLang].msgAdjSuccess);
             document.getElementById('adjustPointsForm').reset();
-
-            if (currentSearchPhone === phone) renderCustomerView(phone);
+            switchTab('realtime');
+            document.getElementById('realtimePhone').value = phone;
+            renderRealtime(phone);
         }
+
+        bindEnter('custPhoneSearch', searchCustomer);
+        bindEnter('realtimePhone', () => renderRealtime(document.getElementById('realtimePhone').value.trim()));
+        applyAccessState();
     </script>
 </body>
 </html>
